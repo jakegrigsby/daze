@@ -49,17 +49,17 @@ class EasyDecoder(tf.keras.layers.Layer):
     def call(self, inputs):
         x = self.conv1(inputs)
         x = self.bn1(x)
-        x = tf.keras.layers.Activation('relu')(x)
+        x = tf.keras.layers.LeakyReLU()(x)
         x = self.up1(x)
 
         x = self.conv2(x)
         x = self.bn2(x)
-        x = tf.keras.layers.Activation('relu')(x)
+        x = tf.keras.layers.LeakyReLU()(x)
         x = self.up2(x)
 
         x = self.conv3(x)
         x = self.bn3(x)
-        x = tf.keras.layers.Activation('relu')(x)
+        x = tf.keras.layers.LeakyReLU()(x)
 
         x = self.reconstruction(x)
         return x

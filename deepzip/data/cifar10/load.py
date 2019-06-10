@@ -3,9 +3,9 @@ import tensorflow as tf
 def load():
     """
     Will take a while to run (the first time)
-    Returns: tuple of numpy arrays (x_train, y_train), (x_test, y_test)
     """
-    return tf.keras.datasets.cifar10.load_data()
+    (x_train, _), (x_val, _) = tf.keras.datasets.cifar10.load_data()
+    return x_train, x_val
 
 
 if __name__ == "__main__":
