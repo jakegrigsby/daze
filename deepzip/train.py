@@ -29,6 +29,7 @@ def baseline_train(autoencoder, x_train, x_val, epochs, experiment_name):
         x=x_train,
         y=x_train,
         epochs=epochs,
+        batch_size=32,
         verbose=1,
         callbacks=callbacks,
         validation_data=(x_val, x_val),

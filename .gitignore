@@ -2,3 +2,7 @@
 deepzip\.egg-info/
 
 deepzip/__pycache__/
+
+deepzip/data/__pycache__/
+
+deepzip/data/cifar10/__pycache__/
