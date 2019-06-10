@@ -1,47 +1,36 @@
+import time
 
 import tensorflow as tf
 
-@tf.function
-def train(dataset, autoencoder, epochs, checkpoint_dir, checkpoint_freq, log_dir):
-    # Create tf Dataset
-    sample_count = dataset.shape[0] #channels last format
-    dataset = tf.data.Dataset.from_tensor_slices(dataset)
-    dataset = dataset.shuffle(sample_count + 1).batch(64)
+def baseline_train(autoencoder, x_train, x_val, epochs, experiment_name):
+    directory += str(int(time.time()))
+
+    # Setup checkpoints and logging
+    checkpoint_dir = os.path.join(directory, 'checkpoints')
+    os.mkdir(checkpoint_dir)
+    
+    log_dir = os.path.join(directory, 'logs')
+    log_dir += time_now
+    os.mkdir(log_dir)
 
     # Create optimizer
     optimizer = tf.train.AdamOptimizer(lr=1e-3)
 
     # Create model
-    model = autoencoder
+    autoencoder.compile(optimizer, loss='mse')
 
-    # Setup checkpoints and logging
-    checkpoint_dir = os.path.dirname(checkpoint_dir)
-    if not os.path.exists(checkpoint_dir):
-        os.mkdir(checkpoint_dir)
-    
-    log_dir = os.path.dirname(log_dir)
-    if not os.path.exists(log_dir):
-        os.mkdir(log_dir)
-    log_writer = tf.summary.create_file_writer(log_dir)
-    log_writer.set_as_default()
+    callbacks = [
+        tf.keras.callbacks.TensorBoard(log_dir, write_graph=True, write_images=True, update_freq='epoch'),
+        tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_dir, monitor='val_acc', save_best_only=True, save_weights_only=False, period=1),
+        tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=2, restore_best_weights=True),
+    ]
 
-
-    for epoch in range(epochs):
-        # Metrics
-        avg_loss = tf.keras.metrics.Mean(name='loss', dtype=tf.float32)
-
-        for x, y in dataset:
-            with tf.GradientTape() as tape:
-                reconstruction = model(x)
-                loss = tf.reduce_mean(tf.square(x - reconstruction))
-                avg_loss.update_state(loss)
-            grads = tape.gradient(loss, model.trainable_variables)
-            optimizer.apply_gradients(zip(grads, model.trainable_variables), global_step=tf.get_or_create_global_step())
-        
-        # Logging
-        tf.summary.scaler('loss', avg_loss.result(), step=optimizer.iterations)
-        avg_loss.reset_states()
-        
-        # Checkpointing
-        if epoch % checkpoint_freq == 0:
-            model.save_weights(os.path.join(checkpoint_dir, f"{epoch_{epoch}"), save_format='tf')
+    return autoencoder.fit(
+        x=x_train,
+        y=x_train,
+        epochs=epochs,
+        verbose=2,
+        callbacks=callbacks,
+        validation_data=(x_val, x_val),
+        shuffle=True,
+    )
