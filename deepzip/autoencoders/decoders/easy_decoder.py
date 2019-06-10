@@ -4,8 +4,8 @@ class EasyDecoder(tf.keras.layers.Layer):
     def __init__(self):
         super().__init__(self)
         self.dense1 = tf.keras.layers.Dense(256)
-        self.dense2 = tf.keras.layers.Dense(6*6*16)
-        self.reshape = tf.keras.layers.Reshape(target_shape=(6,6,16))
+        self.dense2 = tf.keras.layers.Dense(7*7*16)
+        self.reshape = tf.keras.layers.Reshape(target_shape=(7,7,16))
 
         self.conv1 = tf.keras.layers.Conv2DTranspose(
             64,
@@ -13,7 +13,7 @@ class EasyDecoder(tf.keras.layers.Layer):
             strides=1,
             activation="linear",
             data_format="channels_last",
-            padding="same",
+            padding="valid",
         )
         self.bn1 = tf.keras.layers.BatchNormalization()
 
@@ -21,29 +21,30 @@ class EasyDecoder(tf.keras.layers.Layer):
         self.conv2 = tf.keras.layers.Conv2DTranspose(
             64,
             kernel_size=(3, 3),
-            strides=2,
+            strides=1,
             activation="linear",
             data_format="channels_last",
-            padding="same",
+            padding="valid",
         )
         self.bn2 = tf.keras.layers.BatchNormalization()
 
         self.conv3 = tf.keras.layers.Conv2DTranspose(
             32,
             kernel_size=(4, 4),
-            strides=3,
+            strides=1,
             activation="linear",
             data_format="channels_last",
-            padding="same",
+            padding="valid",
         )
         self.bn3 = tf.keras.layers.BatchNormalization()
 
         self.reconstruction = tf.keras.layers.Conv2DTranspose(
             3,
-            kernel_size=(3,3),
+            kernel_size=(8,8),
+            strides=2,
             activation="linear",
             data_format="channels_last",
-            padding="same",
+            padding="valid",
         )
 
     def call(self, inputs):
