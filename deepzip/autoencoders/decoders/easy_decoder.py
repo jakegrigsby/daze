@@ -4,8 +4,8 @@ class EasyDecoder(tf.keras.layers.Layer):
     def __init__(self):
         super().__init__(self)
         self.dense1 = tf.keras.layers.Dense(256)
-        self.dense2 = tf.keras.layers.Dense(7*7*16)
-        self.reshape = tf.keras.layers.Reshape(target_shape=(7,7,16))
+        self.dense2 = tf.keras.layers.Dense(6*6*16)
+        self.reshape = tf.keras.layers.Reshape(target_shape=(6,6,16))
 
         self.conv1 = tf.keras.layers.Conv2DTranspose(
             64,
