@@ -1,11 +1,8 @@
-import deepzip.decoders
-import deepzip.encoders
-import deepzip.autoencoders
-import deepzip.data.cifar10
+import deepzip as dz
 
-model = deepzip.autoencoders.ConvAE(deepzip.encoders.EasyEncoder, deepzip.decoders.EasyDecoder)
+model = dz.autoencoders.ConvAE(dz.encoders.EasyEncoder, dz.decoders.EasyDecoder)
 
-x_train, x_val = deepzip.data.cifar10.load()
+x_train, x_val = dz.data.cifar10.load()
 
 dz.train.baseline_train(model, x_train, x_val, 10, 'first_ae')
 

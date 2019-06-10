@@ -7,5 +7,4 @@ setup(name='deepzip',
       author='Jake Grigsby and Jack Morris',
       author_email='jcg6dn@virginia.edu',
       license='MIT',
-      packages=find_packages(),
-      zip_safe=False)
+      packages=find_packages(),)

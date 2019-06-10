@@ -1,1 +1,1 @@
-from .load import *
+from . import cifar10

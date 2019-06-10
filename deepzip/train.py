@@ -1,20 +1,20 @@
 import time
+import os
 
 import tensorflow as tf
 
 def baseline_train(autoencoder, x_train, x_val, epochs, experiment_name):
-    directory += str(int(time.time()))
+    directory = 'data/' + experiment_name + str(int(time.time()))
 
     # Setup checkpoints and logging
     checkpoint_dir = os.path.join(directory, 'checkpoints')
-    os.mkdir(checkpoint_dir)
+    os.makedirs(checkpoint_dir)
     
     log_dir = os.path.join(directory, 'logs')
-    log_dir += time_now
-    os.mkdir(log_dir)
+    os.makedirs(log_dir)
 
     # Create optimizer
-    optimizer = tf.train.AdamOptimizer(lr=1e-3)
+    optimizer = tf.keras.optimizers.Adam()
 
     # Create model
     autoencoder.compile(optimizer, loss='mse')
@@ -29,7 +29,7 @@ def baseline_train(autoencoder, x_train, x_val, epochs, experiment_name):
         x=x_train,
         y=x_train,
         epochs=epochs,
-        verbose=2,
+        verbose=1,
         callbacks=callbacks,
         validation_data=(x_val, x_val),
         shuffle=True,
