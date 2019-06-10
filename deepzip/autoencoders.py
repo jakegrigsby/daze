@@ -1,9 +1,6 @@
 import numpy as np
 import tensorflow as tf
 
-import encoders
-import decoders
-
 class ConvAE(tf.keras.Model):
     def __init__(self, encoder, decoder):
         super().__init__(self)
