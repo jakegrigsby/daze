@@ -1,4 +1,3 @@
-from .convolutional import ConvAE
-from . import train
+from .convolutional import *
 from . import encoders
 from . import decoders
