@@ -9,7 +9,7 @@ def baseline_train(autoencoder, x_train, x_val, epochs, experiment_name):
     # Setup checkpoints and logging
     checkpoint_dir = os.path.join(directory, 'checkpoints')
     os.makedirs(checkpoint_dir)
-    
+
     log_dir = os.path.join(directory, 'logs')
     os.makedirs(log_dir)
 
