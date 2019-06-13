@@ -47,6 +47,7 @@ class BaselineAE(tf.keras.Model):
         x_hat = self.decode(z)
         return tf.losses.mean_squared_error(x, x_hat)
 
+    @tf.function
     def compute_gradients(self, x):
         """ Computes gradient of custom loss function.
         """
@@ -57,6 +58,13 @@ class BaselineAE(tf.keras.Model):
     def apply_gradients(self, optimizer, gradients, variables):
         """ Applies the gradients to the optimizer. """
         optimizer.apply_gradients(zip(gradients, variables))
+    
+    def create_dataset(self, numpy_dataset):
+        dataset_size = numpy_dataset.shape[0]
+        dataset = tf.cast(numpy_dataset/255, tf.float32)
+        dataset = tf.data.Dataset.from_tensor_slices(dataset)
+        dataset = dataset.shuffle(dataset_size + 1).batch(32)
+        return dataset
 
     def train(self, train_dataset, val_dataset, epochs=10, experiment_name='vae_test'):
         """ Trains the model for a given number of epochs (iterations on a dataset).
@@ -68,24 +76,21 @@ class BaselineAE(tf.keras.Model):
         # Create optimizer
         optimizer = tf.keras.optimizers.Adam()
 
-        dataset_size = train_dataset.shape[0]
-        train_dataset = tf.cast(train_dataset/255, tf.float32)
-        train_dataset = tf.data.Dataset.from_tensor_slices(train_dataset)
-        train_dataset = train_dataset.shuffle(dataset_size + 1).batch(32)
-
+        train_dataset = self.create_dataset(train_dataset)
+       
         for epoch in range(epochs):
             start_time = time.time()
             for (batch, (images)) in enumerate(train_dataset):
                 gradients, loss = self.compute_gradients(images)
                 self.apply_gradients(optimizer, gradients, self.network_trainable_variables)
             end_time = time.time()
-
-            if epoch % 1 == 0:
-              loss = tf.keras.metrics.Mean()
-              for test_x in val_dataset:
-                loss(self.compute_loss(test_x))
-              total_loss = -loss.result()
-              print('Epoch: {}, Test set total loss: {}, '
-                    'time elapse for current epoch {}'.format(epoch,
-                                                              total_loss,
-                                                              end_time - start_time))
+        
+        val_dataset = self.create_dataset(val_dataset)
+        val_loss = tf.keras.metrics.Mean()
+        for images in val_dataset:
+            val_loss(self.compute_loss(images))
+        val_loss = -loss.result()
+        print('Epoch: {}, Test set total loss: {}, '
+                'time elapse for current epoch {}'.format(epoch,
+                                                            val_loss,
+                                                            end_time - start_time))
