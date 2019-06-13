@@ -52,7 +52,7 @@ class BaselineAE(tf.keras.Model):
         """
         with tf.GradientTape() as tape:
           loss = self.compute_loss(x)
-        return tape.gradient(loss, self.trainable_variables), loss
+        return tape.gradient(loss, self.network_trainable_variables), loss
 
     def apply_gradients(self, optimizer, gradients, variables):
         """ Applies the gradients to the optimizer. """
@@ -68,12 +68,16 @@ class BaselineAE(tf.keras.Model):
         # Create optimizer
         optimizer = tf.keras.optimizers.Adam()
 
-        for epoch in range(1, epochs + 1):
+        dataset_size = train_dataset.shape[0]
+        train_dataset = tf.cast(train_dataset/255, tf.float32)
+        train_dataset = tf.data.Dataset.from_tensor_slices(train_dataset)
+        train_dataset = train_dataset.shuffle(dataset_size + 1).batch(32)
+
+        for epoch in range(epochs):
             start_time = time.time()
-            for train_x in train_dataset:
-                print('train_x shape:', train_x.shape)
-                gradients, loss = self.compute_gradients(train_x)
-                self.apply_gradients(optimizer, gradients, self.trainable_variables)
+            for (batch, (images)) in enumerate(train_dataset):
+                gradients, loss = self.compute_gradients(images)
+                self.apply_gradients(optimizer, gradients, self.network_trainable_variables)
             end_time = time.time()
 
             if epoch % 1 == 0:
@@ -81,13 +85,7 @@ class BaselineAE(tf.keras.Model):
               for test_x in val_dataset:
                 loss(self.compute_loss(test_x))
               total_loss = -loss.result()
-              #display.clear_output(wait=False)
               print('Epoch: {}, Test set total loss: {}, '
                     'time elapse for current epoch {}'.format(epoch,
                                                               total_loss,
                                                               end_time - start_time))
-        # callbacks = [
-            # tf.keras.callbacks.TensorBoard(log_dir, write_graph=True, write_images=True, update_freq='epoch'),
-            # tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_dir, monitor='val_loss', save_best_only=True, save_weights_only=False, period=1),
-            # tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=2, restore_best_weights=True),
-        # ]

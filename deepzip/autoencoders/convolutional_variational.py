@@ -16,6 +16,7 @@ class CVAE(BaselineAE):
 
         self.encoder = encoders.EasyEncoder()
         self.decoder = decoders.EasyDecoder()
+        self.network_trainable_variables = self.encoder.trainable_variables + self.decoder.trainable_variables
 
         self.build((1,) + input_shape)
 
