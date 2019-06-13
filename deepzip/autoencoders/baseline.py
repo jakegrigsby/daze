@@ -71,6 +71,7 @@ class BaselineAE(tf.keras.Model):
         for epoch in range(1, epochs + 1):
             start_time = time.time()
             for train_x in train_dataset:
+                print('train_x shape:', train_x.shape)
                 gradients, loss = self.compute_gradients(train_x)
                 self.apply_gradients(optimizer, gradients, self.trainable_variables)
             end_time = time.time()
