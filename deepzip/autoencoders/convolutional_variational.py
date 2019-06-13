@@ -26,20 +26,24 @@ class CVAE(BaselineAE):
         x_hat = self.decode(h)
         return x_hat
 
+    @tf.function
     def sample(self, eps=None):
         """ Allows users to sample from the latent space. """
         if eps is None:
           eps = tf.random.normal(shape=(100, self.latent_dim))
         return self.decode(eps, apply_sigmoid=True)
 
+    @tf.function
     def encode(self, x):
         mean, logvar = tf.split(self.encoder(x), num_or_size_splits=2, axis=1)
         return mean, logvar
 
+    @tf.function
     def reparameterize(self, mean, logvar):
         eps = tf.random.normal(shape=mean.shape)
         return eps * tf.exp(logvar * .5) + mean
 
+    @tf.function
     def decode(self, z, apply_sigmoid=False):
         logits = self.decoder(z)
         if apply_sigmoid:
@@ -48,6 +52,7 @@ class CVAE(BaselineAE):
 
         return logits
 
+    @tf.function
     def compute_loss(self, x):
       mean, logvar = self.encode(x)
       z = self.reparameterize(mean, logvar)

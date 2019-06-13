@@ -40,6 +40,7 @@ class BaselineAE(tf.keras.Model):
 
         return log_dir, checkpoint_dir
 
+    @tf.function
     def compute_loss(self, x):
         """ Computes loss during training. Default loss function is MSE.
         """
@@ -73,10 +74,10 @@ class BaselineAE(tf.keras.Model):
         """
         log_dir, checkpoint_dir = self.init_logging(experiment_name)
 
-        # Create optimizer
         optimizer = tf.keras.optimizers.Adam()
 
         train_dataset = self.create_dataset(train_dataset)
+        val_dataset = self.create_dataset(val_dataset)
        
         for epoch in range(epochs):
             start_time = time.time()
@@ -85,12 +86,11 @@ class BaselineAE(tf.keras.Model):
                 self.apply_gradients(optimizer, gradients, self.network_trainable_variables)
             end_time = time.time()
         
-        val_dataset = self.create_dataset(val_dataset)
-        val_loss = tf.keras.metrics.Mean()
-        for images in val_dataset:
-            val_loss(self.compute_loss(images))
-        val_loss = -loss.result()
-        print('Epoch: {}, Test set total loss: {}, '
-                'time elapse for current epoch {}'.format(epoch,
-                                                            val_loss,
-                                                            end_time - start_time))
+            val_loss = tf.keras.metrics.Mean()
+            for images in val_dataset:
+                val_loss.update_state(self.compute_loss(images))
+            val_loss = val_loss.result().numpy()
+            print('Epoch: {}, Test set total loss: {}, '
+                    'time elapse for current epoch {}'.format(epoch,
+                                                                val_loss,
+                                                                end_time - start_time))
