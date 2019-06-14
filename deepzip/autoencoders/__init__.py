@@ -1,5 +1,6 @@
-from .baseline import *
-from .convolutional import *
-from .convolutional_variational import *
+from .denoising_ae import DenoisingAutoEncoder
+from .vae import VariationalAutoEncoder
+from .cae import ContractiveAutoEncoder
 from . import encoders
 from . import decoders
+

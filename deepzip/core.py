@@ -7,9 +7,12 @@ import tensorflow as tf
 
 from deepzip.autoencoders import encoders, decoders
 
-class BaselineAE(tf.keras.Model):
+class BaseModel(tf.keras.Model):
     """ A basic autoencoder.
     """
+    def __init__(self, encode_block, decode_block):
+        self.encoder, self.decoder = encode_block, decode_block
+        self.network_trainable_variables = self.encoder.trainable_variables + self.decoder.trainable_variables
 
     def call(self, x):
         """ Approximates x by encoding and decoding it.
@@ -66,6 +69,10 @@ class BaselineAE(tf.keras.Model):
         dataset = tf.data.Dataset.from_tensor_slices(dataset)
         dataset = dataset.shuffle(dataset_size + 1).batch(32)
         return dataset
+    
+    def process_input(self, inputs):
+        """Apply any preprocessing to a batch of input data (noise, augmentation)"""
+        return inputs
 
     def train(self, train_dataset, val_dataset, epochs=10, experiment_name='vae_test'):
         """ Trains the model for a given number of epochs (iterations on a dataset).
@@ -82,6 +89,7 @@ class BaselineAE(tf.keras.Model):
         for epoch in range(epochs):
             start_time = time.time()
             for (batch, (images)) in enumerate(train_dataset):
+                images = self.process_input(images)
                 gradients, loss = self.compute_gradients(images)
                 self.apply_gradients(optimizer, gradients, self.network_trainable_variables)
             end_time = time.time()
