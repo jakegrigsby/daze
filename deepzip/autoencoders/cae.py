@@ -1,9 +1,11 @@
 
+import tensorflow as tf
+
 import deepzip as dz
 
 class ContractiveAutoEncoder(dz.core.BaseModel):
-    def __init__(self, encoder_block, decoder_block, gamma):
-        super().__init__(encode_block, decode_block)
+    def __init__(self, input_shape, encode_block, decode_block, gamma):
+        super().__init__(input_shape, encode_block, decode_block)
         self.gamma = gamma
 
     @tf.function
