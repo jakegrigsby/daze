@@ -6,7 +6,7 @@ import tensorflow as tf
 
 import deepzip as dz
 
-class VariationalAutoEncoder(BaselineAE):
+class VariationalAutoEncoder(dz.core.BaseModel):
     def call(self, inputs, training=False):
         mean, logvar = self.encode(inputs)
         h = self.reparameterize(mean, logvar)

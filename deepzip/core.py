@@ -5,14 +5,16 @@ import time
 import numpy as np
 import tensorflow as tf
 
-from deepzip.autoencoders import encoders, decoders
-
 class BaseModel(tf.keras.Model):
     """ A basic autoencoder.
     """
-    def __init__(self, encode_block, decode_block):
-        self.encoder, self.decoder = encode_block, decode_block
-        self.network_trainable_variables = self.encoder.trainable_variables + self.decoder.trainable_variables
+    def __init__(self, input_shape, encode_block, decode_block):
+        super().__init__()
+        self.encoder, self.decoder = encode_block(), decode_block()
+    
+    @property
+    def trainable_variables(self):
+        return self.encoder.trainable_variables + self.decoder.trainable_variables
 
     def call(self, x):
         """ Approximates x by encoding and decoding it.
@@ -21,13 +23,11 @@ class BaseModel(tf.keras.Model):
         x_hat = self.decode(h)
         return x_hat
 
-    @abc.abstractmethod
     def encode(self, x):
-        return
+        return self.encoder(x)
 
-    @abc.abstractmethod
     def decode(self, h):
-        return
+        return self.decoder(h)
 
     def init_logging(self, experiment_name):
         """ Sets up log directories for training.
@@ -48,7 +48,7 @@ class BaseModel(tf.keras.Model):
         """ Computes loss during training. Default loss function is MSE.
         """
         h = self.encode(x)
-        x_hat = self.decode(z)
+        x_hat = self.decode(h)
         return tf.losses.mean_squared_error(x, x_hat)
 
     @tf.function
@@ -57,7 +57,7 @@ class BaseModel(tf.keras.Model):
         """
         with tf.GradientTape() as tape:
           loss = self.compute_loss(x)
-        return tape.gradient(loss, self.network_trainable_variables), loss
+        return tape.gradient(loss, self.trainable_variables), loss
 
     def apply_gradients(self, optimizer, gradients, variables):
         """ Applies the gradients to the optimizer. """
@@ -67,7 +67,7 @@ class BaseModel(tf.keras.Model):
         dataset_size = numpy_dataset.shape[0]
         dataset = tf.cast(numpy_dataset/255, tf.float32)
         dataset = tf.data.Dataset.from_tensor_slices(dataset)
-        dataset = dataset.shuffle(dataset_size + 1).batch(32)
+        dataset = dataset.shuffle(dataset_size + 1).batch(64)
         return dataset
     
     def process_input(self, inputs):
@@ -91,7 +91,7 @@ class BaseModel(tf.keras.Model):
             for (batch, (images)) in enumerate(train_dataset):
                 images = self.process_input(images)
                 gradients, loss = self.compute_gradients(images)
-                self.apply_gradients(optimizer, gradients, self.network_trainable_variables)
+                self.apply_gradients(optimizer, gradients, self.trainable_variables)
             end_time = time.time()
         
             val_loss = tf.keras.metrics.Mean()
