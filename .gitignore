@@ -9,3 +9,4 @@ deepzip/data/cifar10/__pycache__/
 experiments/data/
 
 *.pyc
+*.DS_Store

@@ -2,7 +2,7 @@ import tensorflow as tf
 
 class EasyEncoder(tf.keras.layers.Layer):
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
         self.conv1 = tf.keras.layers.Conv2D(
             32,
             kernel_size=(4, 4),

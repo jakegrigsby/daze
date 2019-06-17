@@ -2,7 +2,7 @@ import tensorflow as tf
 
 class EasyDecoder(tf.keras.layers.Layer):
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
         self.dense1 = tf.keras.layers.Dense(256)
         self.dense2 = tf.keras.layers.Dense(7*7*16)
         self.reshape = tf.keras.layers.Reshape(target_shape=(7,7,16))
