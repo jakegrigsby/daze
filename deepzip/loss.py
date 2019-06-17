@@ -13,6 +13,7 @@ def base_vae_loss(x_logits, x, z, mean, logvar):
     logqz_x = log_normal_pdf(z, mean, logvar)
     return -tf.reduce_mean(logpx_z + logpz - logqz_x)
 
+@tf.function
 def code_frobenius_norm(h, x):
     dh_dx = tf.convert_to_tensor(tf.gradients(h, x), dtype=tf.float32)
     frob_norm = tf.norm(dh_dx)

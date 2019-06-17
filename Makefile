@@ -5,4 +5,4 @@ dev :
 	pip install -e .
 
 clean :
-	-rm -rf experiments/data
+	-rm -rf tests/data
