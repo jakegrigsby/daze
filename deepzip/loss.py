@@ -5,7 +5,7 @@ Module for custom loss functions
 import numpy as np
 import tensorflow as tf
 
-@tf.functions
+@tf.function
 def compute_loss_vae(self, x):
   mean, logvar = self.encode(x)
   z = self.reparameterize(mean, logvar)
