@@ -11,7 +11,7 @@ def train_encoder(encoder_type):
     elif encoder_type == 'vae':
         model = dz.recipes.VariationalAutoEncoder(EasyEncoder, EasyDecoder)
     elif encoder_type == 'denoising':
-        model = dz.recipes.DenoisingAutoEncoder(EasyEncoder, EasyDecoder, .25)
+        model = dz.recipes.DenoisingAutoEncoder(EasyEncoder, EasyDecoder, .15)
     else:
         raise ValueError('Invalid autoencoder type {}'.format(encoder_type))
 

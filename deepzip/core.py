@@ -52,11 +52,11 @@ class AutoEncoder(tf.keras.Model):
 
         return log_dir, checkpoint_dir
 
-    def compute_gradients(self, x):
+    def compute_gradients(self, x, original_x):
         """ Computes gradient of custom loss function.
         """
         with tf.GradientTape() as tape:
-          loss = self.compute_loss(x)
+          loss = self.compute_loss(x, original_x)
         grad = tape.gradient(loss, self.trainable_variables)
         return grad, loss
 
@@ -66,8 +66,7 @@ class AutoEncoder(tf.keras.Model):
     
     def create_dataset(self, numpy_dataset):
         dataset_size = numpy_dataset.shape[0]
-        dataset = tf.cast(numpy_dataset/255, tf.float32)
-        dataset = tf.data.Dataset.from_tensor_slices(dataset)
+        dataset = tf.data.Dataset.from_tensor_slices(numpy_dataset)
         dataset = dataset.shuffle(dataset_size + 1).batch(64)
         return dataset
     
@@ -85,9 +84,9 @@ class AutoEncoder(tf.keras.Model):
        
         for epoch in range(epochs):
             start_time = time.time()
-            for (batch, (images)) in enumerate(train_dataset):
-                images = self.preprocess_input(images)
-                gradients, loss = self.compute_gradients(images)
+            for (batch, (x)) in enumerate(train_dataset):
+                processed_x = self.preprocess_input(x)
+                gradients, loss = self.compute_gradients(processed_x, x)
                 self.apply_gradients(optimizer, gradients, self.trainable_variables)
             end_time = time.time()
         
