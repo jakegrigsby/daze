@@ -1,16 +1,25 @@
-import abc
 import os
 import time
+import functools
 
 import numpy as np
 import tensorflow as tf
 
-class BaseModel(tf.keras.Model):
+import deepzip as dz
+
+class AutoEncoder(tf.keras.Model):
     """ A basic autoencoder.
     """
-    def __init__(self, input_shape, encode_block, decode_block):
+    def __init__(self, encode_block, decode_block, preprocessing_steps=None, loss=dz.loss.reconstruction):
         super().__init__()
         self.encoder, self.decoder = encode_block(), decode_block()
+        self.preprocess_input = preprocessing_steps
+        self.compute_loss = functools.partial(loss, self)
+
+    def preprocess_input(self, x):
+        for func in self.preprocessing_steps:
+            x = func(x)
+        return x
     
     @property
     def trainable_variables(self):
@@ -42,14 +51,6 @@ class BaseModel(tf.keras.Model):
         os.makedirs(log_dir)
 
         return log_dir, checkpoint_dir
-
-    @tf.function
-    def compute_loss(self, x):
-        """ Computes loss during training. Default loss function is MSE.
-        """
-        h = self.encode(x)
-        x_hat = self.decode(h)
-        return tf.losses.mean_squared_error(x, x_hat)
 
     @tf.function
     def compute_gradients(self, x):
