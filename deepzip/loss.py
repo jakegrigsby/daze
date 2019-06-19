@@ -21,12 +21,6 @@ def compute_loss_vae(model, x):
     return -tf.reduce_mean(logpx_z + logpz - logqz_x)
 
 @tf.function
-def custom_loss(model, x):
-    h = model.encode(x)
-    x_hat = model.decode(h)
-    return .5 * tf.keras.losses.mean_squared_error(x, x_hat)
-
-@tf.function
 def code_frobenius_norm(model, h, x):
     dh_dx = tf.convert_to_tensor(tf.gradients(h, x), dtype=tf.float32)
     frob_norm = tf.norm(dh_dx)
