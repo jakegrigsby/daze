@@ -1,21 +1,21 @@
-import abc
 import os
 import time
+import functools
 
 import numpy as np
 import tensorflow as tf
 
-import loss
+import deepzip as dz
 
 class AutoEncoder(tf.keras.Model):
     """ A basic autoencoder.
     """
-    def __init__(self, encode_block, decode_block, preprocessing_steps=None, loss=loss.reconstruction):
+    def __init__(self, encode_block, decode_block, preprocessing_steps=None, loss=dz.loss.reconstruction):
         super().__init__()
         self.encoder, self.decoder = encode_block(), decode_block()
         self.preprocess_input = preprocessing_steps
-        self.compute_loss = loss
-    
+        self.compute_loss = functools.partial(loss, self)
+
     def preprocess_input(self, x):
         for func in self.preprocessing_steps:
             x = func(x)
