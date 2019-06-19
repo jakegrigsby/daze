@@ -4,8 +4,11 @@ from .loss import compute_loss_vae
 
 #@TODO make this pattern into a decorator
 
-def DenoisingAutoEncoder(gamma, *args, **kwargs):
-    return BaseModel(*args, preprocessing=random_mask(gamma), **kwargs)
+def ContractiveAutoEncoder(*args, **kwargs):
+    return NotImplementedError('Fuck you jake')
+
+def DenoisingAutoEncoder(encoder, decoder, gamma):
+    return BaseModel(encoder, decoder, preprocessing=random_mask(gamma))
 
 def VariationalAutoEncoder():
-    return BaseModel(*args, loss=compute_loss_vae, **kwargs)
+    return BaseModel(encoder, decoder, loss=compute_loss_vae)
