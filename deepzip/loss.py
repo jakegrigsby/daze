@@ -23,6 +23,8 @@ def code_frobenius_norm(h, x):
     frob_norm = tf.norm(dh_dx)
     return frob_norm
 
+reconstruction = tf.keras.losses.mean_squared_error
+
 def log_normal_pdf(sample, mean, logvar, raxis=1):
     log2pi = tf.math.log(2. * np.pi)
     return tf.reduce_sum(-.5 * ((sample - mean) ** 2. * tf.exp(-logvar) + logvar + log2pi), axis=raxis)
