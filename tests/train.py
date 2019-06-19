@@ -10,11 +10,13 @@ def train_encoder(encoder_type):
         model = dz.core.AutoEncoder(EasyEncoder, EasyDecoder)
     elif encoder_type == 'vae':
         model = dz.recipes.VariationalAutoEncoder(EasyEncoder, EasyDecoder)
+    elif encoder_type == 'denoising':
+        model = dz.recipes.DenoisingAutoEncoder(EasyEncoder, EasyDecoder, .25)
     else:
         raise ValueError('Invalid autoencoder type {}'.format(encoder_type))
 
     x_train, x_val = dz.data.cifar10.load()
-    print('Model:', model)
+    print('Model:', encoder_type)
     model.train(x_train, x_val, epochs=10, experiment_name='vae_test')
 
 def main():

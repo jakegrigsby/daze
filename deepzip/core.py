@@ -10,10 +10,10 @@ from .loss import reconstruction
 class AutoEncoder(tf.keras.Model):
     """ A basic autoencoder.
     """
-    def __init__(self, encode_block, decode_block, preprocessing_steps=None, loss=reconstruction):
+    def __init__(self, encode_block, decode_block, preprocessing_steps=[], loss=reconstruction):
         super().__init__()
         self.encoder, self.decoder = encode_block(), decode_block()
-        self.preprocess_input = preprocessing_steps
+        self.preprocessing_steps = preprocessing_steps
         self.compute_loss = functools.partial(loss, self)
 
     def preprocess_input(self, x):
@@ -71,10 +71,6 @@ class AutoEncoder(tf.keras.Model):
         dataset = dataset.shuffle(dataset_size + 1).batch(64)
         return dataset
     
-    def process_input(self, inputs):
-        """Apply any preprocessing to a batch of input data (noise, augmentation)"""
-        return inputs
-
     def train(self, train_dataset, val_dataset, epochs=10, experiment_name='vae_test'):
         """ Trains the model for a given number of epochs (iterations on a dataset).
 
@@ -90,7 +86,7 @@ class AutoEncoder(tf.keras.Model):
         for epoch in range(epochs):
             start_time = time.time()
             for (batch, (images)) in enumerate(train_dataset):
-                images = self.process_input(images)
+                images = self.preprocess_input(images)
                 gradients, loss = self.compute_gradients(images)
                 self.apply_gradients(optimizer, gradients, self.trainable_variables)
             end_time = time.time()

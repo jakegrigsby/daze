@@ -8,7 +8,7 @@ def ContractiveAutoEncoder(*args, **kwargs):
     return NotImplementedError('Fuck you jake')
 
 def DenoisingAutoEncoder(encoder, decoder, gamma):
-    return AutoEncoder(encoder, decoder, preprocessing=random_mask(gamma))
+    return AutoEncoder(encoder, decoder, preprocessing_steps=[random_mask(gamma)])
 
 def VariationalAutoEncoder(encoder, decoder):
     return AutoEncoder(encoder, decoder, loss=compute_loss_vae)
