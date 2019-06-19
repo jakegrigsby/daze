@@ -7,7 +7,7 @@ import tensorflow as tf
 
 import loss
 
-class BaseModel(tf.keras.Model):
+class AutoEncoder(tf.keras.Model):
     """ A basic autoencoder.
     """
     def __init__(self, encode_block, decode_block, preprocessing_steps=None, loss=loss.reconstruction):
