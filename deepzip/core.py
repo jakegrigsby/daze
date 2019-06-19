@@ -5,12 +5,12 @@ import functools
 import numpy as np
 import tensorflow as tf
 
-import deepzip as dz
+from .loss import reconstruction
 
 class AutoEncoder(tf.keras.Model):
     """ A basic autoencoder.
     """
-    def __init__(self, encode_block, decode_block, preprocessing_steps=None, loss=dz.loss.reconstruction):
+    def __init__(self, encode_block, decode_block, preprocessing_steps=None, loss=reconstruction):
         super().__init__()
         self.encoder, self.decoder = encode_block(), decode_block()
         self.preprocess_input = preprocessing_steps
@@ -52,13 +52,13 @@ class AutoEncoder(tf.keras.Model):
 
         return log_dir, checkpoint_dir
 
-    @tf.function
     def compute_gradients(self, x):
         """ Computes gradient of custom loss function.
         """
         with tf.GradientTape() as tape:
           loss = self.compute_loss(x)
-        return tape.gradient(loss, self.trainable_variables), loss
+        grad = tape.gradient(loss, self.trainable_variables)
+        return grad, loss
 
     def apply_gradients(self, optimizer, gradients, variables):
         """ Applies the gradients to the optimizer. """

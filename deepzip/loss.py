@@ -9,8 +9,8 @@ import tensorflow as tf
 
 @tf.function
 def compute_loss_vae(model, x):
-    x_hat = model.encode(x)
-    mean, logvar = tf.split(x_hat, num_or_size_splits=2, axis=1)
+    h = model.encode(x)
+    mean, logvar = tf.split(h, num_or_size_splits=2, axis=1)
     z = reparameterize(mean, logvar)
     x_logit = model.decode(z)
 
