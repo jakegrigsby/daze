@@ -10,7 +10,7 @@ x_train, x_val = dz.data.cifar10.load()
 def custom_loss(model, x):
     h = model.encode(x)
     x_hat = model.decode(h)
-    return .5 * dz.loss.reconstruction(x, x_hat)
+    return .5 * tf.keras.losses.mean_squared_error(x, x_hat)
 
-model = dz.core.AutoEncoder(EasyEncoder, EasyDecoder, loss=custom_loss)
+model = dz.core.AutoEncoder(EasyEncoder, EasyDecoder)
 model.train(x_train, x_val, epochs=10, experiment_name='dae_test')
