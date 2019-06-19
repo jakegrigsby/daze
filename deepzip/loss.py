@@ -2,16 +2,20 @@
 Module for custom loss functions
 """
 
-import numpy as np 
+import numpy as np
 import tensorflow as tf
 
-@tf.function
-def base_vae_loss(x_logits, x, z, mean, logvar):
-    cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(logits=x_logit, labels=x)
-    logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
-    logpz = log_normal_pdf(z, 0., 0.)
-    logqz_x = log_normal_pdf(z, mean, logvar)
-    return -tf.reduce_mean(logpx_z + logpz - logqz_x)
+@tf.functions
+def compute_loss_vae(self, x):
+  mean, logvar = self.encode(x)
+  z = self.reparameterize(mean, logvar)
+  x_logit = self.decode(z)
+
+  cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(logits=x_logit, labels=x)
+  logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+  logpz = log_normal_pdf(z, 0., 0.)
+  logqz_x = log_normal_pdf(z, mean, logvar)
+  return -tf.reduce_mean(logpx_z + logpz - logqz_x)
 
 @tf.function
 def code_frobenius_norm(h, x):
