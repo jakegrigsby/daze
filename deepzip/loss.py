@@ -9,6 +9,24 @@ import tensorflow as tf
 
 mse = tf.keras.losses.mean_squared_error
 
+"""
+
+class Reconstruction:
+    def __call__(self, model, x, original_x=None):
+        self.h = model.encode(x)
+        self.x_hat = model.decode(h)
+        return mse(x, self.x_hat)
+
+class Sparsity(Reconstruction):
+    def __init__(self, sparsity_coeff):
+        self.sparsity_coeff = sparsity_coeff
+
+    def __call__(self, model, x, original_x=None):
+        reconstruction = super().__call__(model, x, original_x)
+        sparsity = tf.norm(self.h, ord=1)
+        return reconstruction + self.sparsity_coeff*sparsity
+"""
+
 @tf.function
 def compute_loss_vae(model, x, original_x=None):
     h = model.encode(x)
