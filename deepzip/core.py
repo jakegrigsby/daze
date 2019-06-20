@@ -84,9 +84,9 @@ class AutoEncoder(tf.keras.Model):
        
         for epoch in range(epochs):
             start_time = time.time()
-            for (batch, (x)) in enumerate(train_dataset):
-                processed_x = self.preprocess_input(x)
-                gradients, loss = self.compute_gradients(processed_x, x)
+            for (batch, (original_x)) in enumerate(train_dataset):
+                processed_x = self.preprocess_input(original_x)
+                gradients, loss = self.compute_gradients(processed_x, original_x)
                 self.apply_gradients(optimizer, gradients, self.trainable_variables)
             end_time = time.time()
         

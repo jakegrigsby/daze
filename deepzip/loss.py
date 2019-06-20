@@ -7,6 +7,8 @@ from .helpers import log_normal_pdf, reparameterize
 import numpy as np
 import tensorflow as tf
 
+mse = tf.keras.losses.mean_squared_error
+
 @tf.function
 def compute_loss_vae(model, x, original_x=None):
     h = model.encode(x)
@@ -21,19 +23,47 @@ def compute_loss_vae(model, x, original_x=None):
     return -tf.reduce_mean(logpx_z + logpz - logqz_x)
 
 @tf.function
-def code_frobenius_norm(model, x, original_x=None):
+def code_frobenius_norm(model, x, original_x=None, coeff=.1):
+    h = model.encode(x)
+    x_hat = model.decode(h)
     dh_dx = tf.convert_to_tensor(tf.gradients(h, x), dtype=tf.float32)
     frob_norm = tf.norm(dh_dx)
-    return frob_norm
+    reconstruction = mse(x_hat, x)
+    return reconstruction + coeff*frob_norm
+
+@tf.function
+def noisy_code_frobenius_norm(model, x, original_x=None, coeff=.1):
+    h = model.encode(x)
+    x_hat = model.decode(h)
+    dh_dx = tf.convert_to_tensor(tf.gradients(h, x), dtype=tf.float32)
+    frob_norm = tf.norm(dh_dx)
+    noisy_reconstruction = mse(x_hat, original_x)
+    return noisy_reconstruction + coeff*frob_norm
+
+@tf.function
+def reconstruction_sparsity(model, x, original_x=None, coeff=.1):
+    h = model.encode(x)
+    x_hat = model.decode(h)
+    reconstruction = mse(x, x_hat)
+    sparsity = tf.norm(h, ord=1)
+    return reconstruction + coeff*sparsity
+
+@tf.function
+def noisy_reconstruction_sparsity(model, x, original_x=None, coeff=.1):
+    h = model.encode(x)
+    x_hat = model.decode(h)
+    noisy_reconstruction = mse(x_hat, original_x)
+    sparsity = tf.norm(h, ord=1)
+    return noisy_reconstruction + coeff*sparsity
 
 @tf.function
 def noisy_reconstruction(model, x, original_x=None):
     h = model.encode(x)
     x_hat = model.decode(h)
-    return tf.keras.losses.mean_squared_error(x_hat, original_x)
+    return mse(x_hat, original_x)
 
 @tf.function
 def reconstruction(model, x, original_x=None):
     h = model.encode(x)
     x_hat = model.decode(h)
-    return tf.keras.losses.mean_squared_error(x, x_hat)
+    return mse(x, x_hat)

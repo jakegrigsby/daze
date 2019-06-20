@@ -1,6 +1,6 @@
 import deepzip as dz
-from deepzip.autoencoders.encoders import EasyEncoder
-from deepzip.autoencoders.decoders import EasyDecoder
+from deepzip.nets.encoders import EasyEncoder
+from deepzip.nets.decoders import EasyDecoder
 
 import argparse
 import tensorflow as tf
@@ -12,6 +12,10 @@ def train_encoder(encoder_type):
         model = dz.recipes.VariationalAutoEncoder(EasyEncoder, EasyDecoder)
     elif encoder_type == 'denoising':
         model = dz.recipes.DenoisingAutoEncoder(EasyEncoder, EasyDecoder, .15)
+    elif encoder_type == 'sparse':
+        model = dz.recipes.SparseAutoEncoder(EasyEncoder, EasyDecoder)
+    elif encoder_type == 'contractive':
+        model = dz.recipes.ContractiveAutoEncoder(EasyEncoder, EasyDecoder)
     else:
         raise ValueError('Invalid autoencoder type {}'.format(encoder_type))
 
