@@ -119,7 +119,7 @@ class AutoEncoder(tf.keras.Model):
             val_loss = tf.keras.metrics.Mean()
             for original_x in val_dataset:
                 processed_x = self.preprocess_input(original_x)
-                val_loss.update_state(self.compute_loss(self.call(original_x, processed_x)))
+                val_loss.update_state(self.compute_loss(*self.call(original_x, processed_x)))
             val_loss = val_loss.result().numpy()
             if verbosity == 1:
                 print('Epoch: {}, Test set total loss: {}, '
