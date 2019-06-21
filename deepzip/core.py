@@ -10,7 +10,7 @@ from .loss import reconstruction
 class AutoEncoder(tf.keras.Model):
     """ A basic autoencoder.
     """
-    def __init__(self, encode_block, decode_block, preprocessing_steps=[], loss=reconstruction):
+    def __init__(self, encode_block, decode_block, preprocessing_steps=[], loss=reconstruction()):
         super().__init__()
         self.encoder, self.decoder = encode_block(), decode_block()
         self.preprocessing_steps = preprocessing_steps
@@ -41,7 +41,12 @@ class AutoEncoder(tf.keras.Model):
     def init_logging(self, experiment_name):
         """ Sets up log directories for training.
         """
-        directory = 'data/' + experiment_name + str(int(time.time()))
+        directory = os.path.join('data/', experiment_name)
+        # get unique number for this run
+        i = 0
+        while os.path.exists(directory + f"_{i}"):
+            i += 1
+        directory += f"_{i}"
 
         # Setup checkpoints and logging
         checkpoint_dir = os.path.join(directory, 'checkpoints')
@@ -70,7 +75,7 @@ class AutoEncoder(tf.keras.Model):
         dataset = dataset.shuffle(dataset_size + 1).batch(64)
         return dataset
     
-    def train(self, train_dataset, val_dataset, epochs=10, experiment_name='vae_test'):
+    def train(self, train_dataset, val_dataset, epochs=10, experiment_name='vae_test', verbosity=1):
         """ Trains the model for a given number of epochs (iterations on a dataset).
 
         @TODO: implement callbacks, return a History object
@@ -91,10 +96,12 @@ class AutoEncoder(tf.keras.Model):
             end_time = time.time()
         
             val_loss = tf.keras.metrics.Mean()
-            for images in val_dataset:
-                val_loss.update_state(self.compute_loss(images))
+            for original_x in val_dataset:
+                processed_x = self.preprocess_input(original_x)
+                val_loss.update_state(self.compute_loss(processed_x, original_x))
             val_loss = val_loss.result().numpy()
-            print('Epoch: {}, Test set total loss: {}, '
-                    'time elapse for current epoch {}'.format(epoch,
-                                                                val_loss,
-                                                                end_time - start_time))
+            if verbosity == 1:
+                print('Epoch: {}, Test set total loss: {}, '
+                        'time elapse for current epoch {}'.format(epoch,
+                                                                    val_loss,
+                                                                    end_time - start_time))

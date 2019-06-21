@@ -6,6 +6,7 @@ dev :
 
 test :
 	pytest tests/
+	rm -rf tests/data
 
 clean :
 	-rm -rf tests/data

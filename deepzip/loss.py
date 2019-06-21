@@ -37,14 +37,14 @@ def contractive(coeff):
 
 def denoising_contractive(coeff):
     @tf.function
-    def _noisy_code_frobenius_norm(model, x, original_x=None):
+    def _denoising_contractive(model, x, original_x=None):
         h = model.encode(x)
         x_hat = model.decode(h)
         dh_dx = tf.convert_to_tensor(tf.gradients(h, x), dtype=tf.float32)
         frob_norm = tf.norm(dh_dx)
         noisy_reconstruction = mse(x_hat, original_x)
         return noisy_reconstruction + coeff*frob_norm
-    return _noisy_code_frobenius_norm
+    return _denoising_contractive
 
 def reconstruction_sparsity(coeff):
     @tf.function
