@@ -31,12 +31,15 @@ class AutoEncoder(tf.keras.Model):
             x = func(x)
         return x
     
-    def compute_loss(self, *args):
-        loss = 0
-        for loss_func in self.loss_funcs:
-            loss += loss_func(*args)
-        return loss
-    
+    def compute_loss(self, original_x, x):
+        with tf.GradientTape(persistent=True) as tape:
+            tape.watch(x)
+            forward_pass = self.call(original_x, x)
+            loss = 0
+            for loss_func in self.loss_funcs:
+                loss += loss_func(tape, *forward_pass)
+        return loss, tape
+        
     @property
     def trainable_variables(self):
         return self.encoder.trainable_variables + self.decoder.trainable_variables
@@ -80,9 +83,7 @@ class AutoEncoder(tf.keras.Model):
     def compute_gradients(self, x, original_x):
         """ Computes gradient of custom loss function.
         """
-        with tf.GradientTape() as tape:
-            call_result = self.call(original_x, x)
-            loss = self.compute_loss(*call_result)
+        loss, tape = self.compute_loss(original_x, x)
         grad = tape.gradient(loss, self.trainable_variables)
         return grad, loss
 
@@ -112,14 +113,15 @@ class AutoEncoder(tf.keras.Model):
             start_time = time.time()
             for (batch, (original_x)) in enumerate(train_dataset):
                 processed_x = self.preprocess_input(original_x)
-                gradients, loss = self.compute_gradients(processed_x, original_x)
+                gradients, loss = self.compute_gradients(original_x, processed_x)
                 self.apply_gradients(optimizer, gradients, self.trainable_variables)
             end_time = time.time()
         
             val_loss = tf.keras.metrics.Mean()
             for original_x in val_dataset:
                 processed_x = self.preprocess_input(original_x)
-                val_loss.update_state(self.compute_loss(*self.call(original_x, processed_x)))
+                loss, _ = self.compute_loss(original_x, processed_x)
+                val_loss.update_state(loss)
             val_loss = val_loss.result().numpy()
             if verbosity == 1:
                 print('Epoch: {}, Test set total loss: {}, '
