@@ -7,21 +7,21 @@ import tensorflow as tf
 
 def train_encoder(encoder_type):
     if encoder_type == 'default':
-        model = dz.core.AutoEncoder(EasyEncoder, EasyDecoder)
+        model = dz.core.AutoEncoder(EasyEncoder(), EasyDecoder())
     elif encoder_type == 'vae':
-        model = dz.recipes.VariationalAutoEncoder(EasyEncoder, EasyDecoder)
+        model = dz.recipes.VariationalAutoEncoder(EasyEncoder(), EasyDecoder())
     elif encoder_type == 'denoising':
-        model = dz.recipes.DenoisingAutoEncoder(EasyEncoder, EasyDecoder, .15)
+        model = dz.recipes.DenoisingAutoEncoder(EasyEncoder(), EasyDecoder(), .15)
     elif encoder_type == 'sparse':
-        model = dz.recipes.SparseAutoEncoder(EasyEncoder, EasyDecoder)
+        model = dz.recipes.SparseAutoEncoder(EasyEncoder(), EasyDecoder())
     elif encoder_type == 'contractive':
-        model = dz.recipes.ContractiveAutoEncoder(EasyEncoder, EasyDecoder)
+        model = dz.recipes.ContractiveAutoEncoder(EasyEncoder(), EasyDecoder())
     else:
         raise ValueError('Invalid autoencoder type {}'.format(encoder_type))
 
     x_train, x_val = dz.data.cifar10.load()
     print('Model:', encoder_type)
-    model.train(x_train, x_val, epochs=10, experiment_name='vae_test')
+    model.train(x_train, x_val, epochs=10, experiment_name='testrun')
 
 def main():
     parser = argparse.ArgumentParser()

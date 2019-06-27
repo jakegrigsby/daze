@@ -108,30 +108,37 @@ class AutoEncoder(tf.keras.Model):
 
         train_dataset = self.create_dataset(train_dataset)
         val_dataset = self.create_dataset(val_dataset)
-       
+
+        log_writer = tf.summary.create_file_writer(log_dir)
+        train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)       
+        val_loss = tf.keras.metrics.Mean('val_loss', dtype=tf.float32)
         for epoch in range(epochs):
             start_time = time.time()
             for (batch, (original_x)) in enumerate(train_dataset):
                 processed_x = self.preprocess_input(original_x)
                 gradients, loss = self.compute_gradients(original_x, processed_x)
+                train_loss(loss)
                 self.apply_gradients(optimizer, gradients, self.trainable_variables)
             end_time = time.time()
         
-            val_loss = tf.keras.metrics.Mean()
             for original_x in val_dataset:
                 processed_x = self.preprocess_input(original_x)
                 loss, _ = self.compute_loss(original_x, processed_x)
                 val_loss.update_state(loss)
-            val_loss = val_loss.result().numpy()
+
+             with log_writer.as_default():
+                tf.summary.scalar('train_loss', train_loss.result(), step=epoch)
+                tf.summary.scalar('val_loss', val_loss.result(), step=epoch)
+
             if verbosity == 1:
-                print('Epoch: {}, Test set total loss: {}, '
-                        'time elapse for current epoch {}'.format(epoch,
-                                                                    val_loss,
-                                                                    end_time - start_time))
-            
+                print(f"Epoch {epoch}, Train_Loss {train_loss.result()}, Val_Loss {val_loss.result()} Train_Time {end_time - start_time}")
+
             if callbacks:
                 for callback in callbacks: callback(self)
-
+            
+            train_loss.reset_states()
+            val_loss.reset_states()
+            
 class GenerativeAutoEncoder(AutoEncoder):
     """ An autoencoder that encodes data as some distribution. Supports sampling. """
     def __init__(self, encoder, decoder, preprocessing_steps=[], call_func='vae', loss_funcs=[reconstruction()], latent_dim=32):
