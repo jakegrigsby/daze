@@ -10,3 +10,5 @@ experiments/data/
 
 *.pyc
 *.DS_Store
+
+data/

@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-class EasyDecoder(tf.keras.layers.Layer):
+class EasyDecoder(tf.keras.models.Model):
     def __init__(self):
         super().__init__()
         self.dense1 = tf.keras.layers.Dense(256)

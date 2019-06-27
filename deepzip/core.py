@@ -1,6 +1,7 @@
 import os
 import time
 import functools
+import math
 
 import numpy as np
 import tensorflow as tf
@@ -39,7 +40,29 @@ class AutoEncoder(tf.keras.Model):
             for loss_func in self.loss_funcs:
                 loss += loss_func(tape, *forward_pass)
         return loss, tape
-        
+    
+    def predict(self, x):
+        return self.call(x)[-1]
+    
+    @property
+    def weights(self):
+        return [self.encoder.get_weights(), self.decoder.get_weights()]
+    
+    @weights.setter
+    def weights(self, new_weights):
+        self.encoder.set_weights(new_weights[0])
+        self.decoder.set_weights(new_weights[1])
+    
+    def save_weights(self, path):
+        if not os.path.exists(path):
+            os.makedirs(path)
+        self.encoder.save_weights(os.path.join(path, "encoder"))
+        self.decoder.save_weights(os.path.join(path, "decoder"))
+    
+    def load_weights(self, path):
+        self.encoder.load_weights(os.path.join(path, "encoder"))
+        self.decoder.load_weights(os.path.join(path, "decoder"))
+ 
     @property
     def trainable_variables(self):
         return self.encoder.trainable_variables + self.decoder.trainable_variables
@@ -91,13 +114,13 @@ class AutoEncoder(tf.keras.Model):
         """ Applies the gradients to the optimizer. """
         optimizer.apply_gradients(zip(gradients, variables))
     
-    def create_dataset(self, numpy_dataset):
+    def create_dataset(self, numpy_dataset, batch_size):
         dataset_size = numpy_dataset.shape[0]
         dataset = tf.data.Dataset.from_tensor_slices(numpy_dataset)
-        dataset = dataset.shuffle(dataset_size + 1).batch(64)
+        dataset = dataset.shuffle(dataset_size + 1).batch(batch_size)
         return dataset
     
-    def train(self, train_dataset, val_dataset, epochs=10, experiment_name='test', verbosity=1, callbacks=None):
+    def train(self, train_dataset, val_dataset, epochs=10, experiment_name='test', verbosity=1, callbacks=None, batch_size=64):
         """ Trains the model for a given number of epochs (iterations on a dataset).
 
         @TODO: implement callbacks, return a History object
@@ -106,19 +129,23 @@ class AutoEncoder(tf.keras.Model):
 
         optimizer = tf.keras.optimizers.Adam()
 
-        train_dataset = self.create_dataset(train_dataset)
-        val_dataset = self.create_dataset(val_dataset)
+        train_set_size = train_dataset.shape[0]
+        batch_count = math.ceil(train_set_size / batch_size)
+        train_dataset = self.create_dataset(train_dataset, batch_size)
+        val_dataset = self.create_dataset(val_dataset, batch_size)
 
         log_writer = tf.summary.create_file_writer(log_dir)
         train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)       
         val_loss = tf.keras.metrics.Mean('val_loss', dtype=tf.float32)
         for epoch in range(epochs):
             start_time = time.time()
+            if verbosity > 1: progbar = tf.keras.utils.Progbar(batch_count)
             for (batch, (original_x)) in enumerate(train_dataset):
                 processed_x = self.preprocess_input(original_x)
                 gradients, loss = self.compute_gradients(original_x, processed_x)
                 train_loss(loss)
                 self.apply_gradients(optimizer, gradients, self.trainable_variables)
+                if verbosity > 1: progbar.update(batch+1)
             end_time = time.time()
         
             for original_x in val_dataset:
@@ -126,11 +153,11 @@ class AutoEncoder(tf.keras.Model):
                 loss, _ = self.compute_loss(original_x, processed_x)
                 val_loss.update_state(loss)
 
-             with log_writer.as_default():
+            with log_writer.as_default():
                 tf.summary.scalar('train_loss', train_loss.result(), step=epoch)
                 tf.summary.scalar('val_loss', val_loss.result(), step=epoch)
 
-            if verbosity == 1:
+            if verbosity >= 1:
                 print(f"Epoch {epoch}, Train_Loss {train_loss.result()}, Val_Loss {val_loss.result()} Train_Time {end_time - start_time}")
 
             if callbacks:
@@ -138,6 +165,8 @@ class AutoEncoder(tf.keras.Model):
             
             train_loss.reset_states()
             val_loss.reset_states()
+        
+        self.save_weights(checkpoint_dir)
             
 class GenerativeAutoEncoder(AutoEncoder):
     """ An autoencoder that encodes data as some distribution. Supports sampling. """

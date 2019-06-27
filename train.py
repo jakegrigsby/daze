@@ -21,7 +21,7 @@ def train_encoder(encoder_type):
 
     x_train, x_val = dz.data.cifar10.load()
     print('Model:', encoder_type)
-    model.train(x_train, x_val, epochs=10, experiment_name='testrun')
+    model.train(x_train, x_val, epochs=10, experiment_name='testrun', verbosity=2)
 
 def main():
     parser = argparse.ArgumentParser()
