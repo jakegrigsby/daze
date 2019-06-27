@@ -80,7 +80,7 @@ class AutoEncoder(tf.keras.Model):
         os.makedirs(log_dir)
         return log_dir, checkpoint_dir
 
-    def compute_gradients(self, x, original_x):
+    def compute_gradients(self, original_x, x):
         """ Computes gradient of custom loss function.
         """
         loss, tape = self.compute_loss(original_x, x)
