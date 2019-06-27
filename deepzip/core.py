@@ -10,9 +10,9 @@ from .loss import reconstruction
 class AutoEncoder(tf.keras.Model):
     """ A basic autoencoder.
     """
-    def __init__(self, encode_block, decode_block, preprocessing_steps=[], loss=reconstruction()):
+    def __init__(self, encoder, decoder, preprocessing_steps=[], loss=reconstruction()):
         super().__init__()
-        self.encoder, self.decoder = encode_block(), decode_block()
+        self.encoder, self.decoder = encoder, decoder
         self.preprocessing_steps = preprocessing_steps
         self.compute_loss = functools.partial(loss, self)
 
@@ -28,6 +28,8 @@ class AutoEncoder(tf.keras.Model):
     def call(self, x):
         """ Approximates x by encoding and decoding it.
         """
+        # x_preprocessed = self.preprocess_input(x)
+        # h = self.encode(x_preprocessed)
         h = self.encode(x)
         x_hat = self.decode(h)
         return x_hat
@@ -75,7 +77,7 @@ class AutoEncoder(tf.keras.Model):
         dataset = dataset.shuffle(dataset_size + 1).batch(64)
         return dataset
     
-    def train(self, train_dataset, val_dataset, epochs=10, experiment_name='vae_test', verbosity=1):
+    def train(self, train_dataset, val_dataset, epochs=10, experiment_name='test', verbosity=1, callbacks=None):
         """ Trains the model for a given number of epochs (iterations on a dataset).
 
         @TODO: implement callbacks, return a History object
@@ -105,3 +107,23 @@ class AutoEncoder(tf.keras.Model):
                         'time elapse for current epoch {}'.format(epoch,
                                                                     val_loss,
                                                                     end_time - start_time))
+            
+            if callbacks:
+                for callback in callbacks: callback(self)
+
+class GenerativeAutoEncoder(AutoEncoder):
+    """ An autoencoder that encodes data as some distribution. Supports sampling. """
+    def __init__(self, encoder, decoder, preprocessing_steps=[], loss=reconstruction(), latent_dim=32):
+        super().__init__( encoder, decoder, preprocessing_steps=preprocessing_steps, loss=loss)
+        self.latent_dim = latent_dim # @TODO store in encoder?
+    
+    def sample(self, eps):
+        """ Returns a sampling from the distribution, given a code vector."""
+        logits = self.decode(eps)
+        probs = tf.sigmoid(logits)
+        return probs
+        
+    def sample_random(self):
+        """ Returns a random sampling from the distribution. """
+        eps = tf.random.normal(shape=(100, self.latent_dim))
+        return self.sample(eps)

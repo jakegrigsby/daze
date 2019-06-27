@@ -16,5 +16,5 @@ def load(size=None):
 if __name__ == "__main__":
     train, test = load()
     import matplotlib.pyplot as plt
-    plt.imshow(train[0][0,...])
+    plt.imshow(train[0])
     plt.show()

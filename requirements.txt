@@ -1,3 +1,5 @@
-tensorflow==2.0.0-beta0
+imageio
 numpy
 opencv-python
+pytest
+tensorflow==2.0.0-beta0
