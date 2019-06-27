@@ -28,8 +28,6 @@ class AutoEncoder(tf.keras.Model):
     def call(self, x):
         """ Approximates x by encoding and decoding it.
         """
-        # x_preprocessed = self.preprocess_input(x)
-        # h = self.encode(x_preprocessed)
         h = self.encode(x)
         x_hat = self.decode(h)
         return x_hat
