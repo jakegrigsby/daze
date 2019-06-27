@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 class EasyEncoder(tf.keras.layers.Layer):
-    def __init__(self):
+    def __init__(self, latent_dim=32):
         super().__init__()
         self.conv1 = tf.keras.layers.Conv2D(
             32,
@@ -35,7 +35,7 @@ class EasyEncoder(tf.keras.layers.Layer):
 
         self.flatten = tf.keras.layers.Flatten()
         self.dense1 = tf.keras.layers.Dense(128, activation='linear')
-        self.dense2 = tf.keras.layers.Dense(32, activation='linear')
+        self.dense2 = tf.keras.layers.Dense(latent_dim, activation='linear')
 
     def call(self, inputs):
         x = self.conv1(inputs)
