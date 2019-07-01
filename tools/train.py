@@ -1,11 +1,14 @@
+import argparse
+
+import tensorflow as tf
+
 import deepzip as dz
 from deepzip.nets.encoders import EasyEncoder
 from deepzip.nets.decoders import EasyDecoder
 
-import argparse
-import tensorflow as tf
 
-def train_encoder(encoder_type):
+def train_encoder(encoder_type, dataset_type, run_name):
+    # Select encoder type
     if encoder_type == 'default':
         model = dz.core.AutoEncoder(EasyEncoder(), EasyDecoder())
     elif encoder_type == 'vae':
@@ -19,14 +22,23 @@ def train_encoder(encoder_type):
     else:
         raise ValueError('Invalid autoencoder type {}'.format(encoder_type))
 
-    x_train, x_val = dz.data.cifar10.load()
-    print('Model:', encoder_type)
-    model.train(x_train, x_val, epochs=10, experiment_name='testrun', verbosity=2)
+    # Select dataset
+    if dataset_type in ['cifar', 'cifar10']:
+        dataset = dz.data.cifar10
+    else:
+        raise ValueError(f"Invalid dataset code {datset_str}. Options are: 'cifar'...")
+    
+    x_train, x_val = dataset.load()
+    model.train(x_train, x_val, epochs=10, experiment_name=run_name, verbosity=2)
 
 def main():
+    # parse args
     parser = argparse.ArgumentParser()
-    parser.add_argument('type', type=str, help='model type, like vae or default')
+    parser.add_argument('-type', default="default", type=str, help='model type, like vae or default')
+    parser.add_argument('-dataset', default="cifar", type=str)
+    parser.add_argument('-name', default='testrun', type=str)
     args = parser.parse_args()
-    train_encoder(args.type)
+    train_encoder(args.type, args.dataset, args.name)
 
-main()
+if __name__ == "__main__":
+    main()
