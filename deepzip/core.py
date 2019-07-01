@@ -90,7 +90,7 @@ class AutoEncoder(tf.keras.Model):
     def init_logging(self, experiment_name):
         """ Sets up log directories for training.
         """
-        directory = os.path.join('data/', experiment_name)
+        directory = os.path.join('saves/', experiment_name)
         # get unique number for this run
         i = 0
         while os.path.exists(directory + f"_{i}"):
