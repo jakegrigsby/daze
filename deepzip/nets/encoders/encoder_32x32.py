@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-class EasyEncoder(tf.keras.models.Model):
+class Encoder_32x32(tf.keras.models.Model):
     def __init__(self, latent_dim=32):
         super().__init__()
         self.conv1 = tf.keras.layers.Conv2D(
@@ -56,3 +56,5 @@ class EasyEncoder(tf.keras.models.Model):
         x = self.dense2(x)
 
         return x
+
+EncoderCifar10 = Encoder_32x32

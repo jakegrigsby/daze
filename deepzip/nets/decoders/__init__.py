@@ -1,1 +1,1 @@
-from .easy_decoder import EasyDecoder
+from .decoder_32x32 import *
