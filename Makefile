@@ -6,7 +6,7 @@ dev :
 
 test :
 	pytest tests/
-	rm -rf tests/data
+	rm -rf saves
 
 clean :
-	-rm -rf tests/data
+	-rm -rf saves
