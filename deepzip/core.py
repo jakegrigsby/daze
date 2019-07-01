@@ -42,7 +42,7 @@ class AutoEncoder(tf.keras.Model):
         return loss, tape
     
     def predict(self, x):
-        return self.call(x)[-1]
+        return self.call(x, x)[-1]
     
     @property
     def weights(self):
