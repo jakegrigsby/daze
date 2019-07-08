@@ -48,7 +48,6 @@ class Decoder_32x32(tf.keras.models.Model):
         )
 
     def call(self, inputs):
-        # print('inputs shape:', inputs.shape)
         x = self.dense1(inputs)
         x = tf.keras.layers.LeakyReLU()(x)
         x = self.dense2(x)
