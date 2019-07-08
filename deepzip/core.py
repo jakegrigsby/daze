@@ -1,6 +1,5 @@
 import os
 import time
-import functools
 import math
 
 import numpy as np
@@ -149,8 +148,7 @@ class AutoEncoder(tf.keras.Model):
             end_time = time.time()
         
             for original_x in val_dataset:
-                processed_x = self.preprocess_input(original_x)
-                loss, _ = self.compute_loss(original_x, processed_x)
+                loss, _ = self.compute_loss(original_x, original_x)
                 val_loss.update_state(loss)
 
             with log_writer.as_default():
