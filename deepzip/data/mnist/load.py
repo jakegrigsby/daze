@@ -1,4 +1,6 @@
+
 import tensorflow as tf
+import numpy as np
 
 import deepzip as dz
 
@@ -10,4 +12,6 @@ def load(size=None, dtype=None):
     if dtype:
         dtype = dz.data.utils.parse_dtype(dtype)
         x_train, x_val = x_train.astype(dtype), x_val.astype(dtype)
+    x_train = np.expand_dims(x_train, -1)
+    x_val = np.expand_dims(x_val, -1)
     return x_train, x_val
