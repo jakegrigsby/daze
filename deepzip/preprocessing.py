@@ -15,7 +15,7 @@ def random_mask(destruction_coeff, seed=None):
         num_set_zero = int(total_size*destruction_coeff)
         mask = np.ones(total_size, dtype=np.float32)
         mask[:num_set_zero] = 0.
-        np.random.shuffle(mask)
+        tf.random.shuffle(mask)
         mask = tf.dtypes.cast(tf.reshape(mask, input_batch.shape), input_batch.dtype)
         return input_batch * mask
     return _random_mask
