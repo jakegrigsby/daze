@@ -9,13 +9,14 @@ def random_mask(destruction_coeff, seed=None):
     A fraction of the input tensor (determined by destruction_coeff) is
     randomly set to 0.
     """
+    if seed: np.random.seed(seed)
     def _random_mask(input_batch):
         total_size = tf.size(input_batch).numpy()
         num_set_zero = int(total_size*destruction_coeff)
-        idxs = np.random.choice(np.arange(total_size), num_set_zero)
-        mask = np.ones(total_size)
-        mask[idxs] = 0.
-        mask = tf.dtypes.cast(tf.reshape(mask, input_batch.shape), tf.float32)
+        mask = np.ones(total_size, dtype=np.float32)
+        mask[:num_set_zero] = 0.
+        np.random.shuffle(mask)
+        mask = tf.dtypes.cast(tf.reshape(mask, input_batch.shape), input_batch.dtype)
         return input_batch * mask
     return _random_mask
 
