@@ -3,6 +3,7 @@ import numpy as np
 
 import deepzip as dz
 
+
 def load(size=None, dtype=None):
     """
     Will take a while to run (the first time)
@@ -14,13 +15,3 @@ def load(size=None, dtype=None):
         dtype = dz.data.utils.parse_dtype(dtype)
         x_train, x_val = x_train.astype(dtype), x_val.astype(dtype)
     return x_train, x_val
-
-
-if __name__ == "__main__":
-    train, val = load()
-    import matplotlib.pyplot as plt
-    print("Loaded CIFAR10 Dataset...")
-    print(f"Training Set shape: {train.shape}")
-    print(f"Validation Set shape: {val.shape}")
-    plt.imshow(train[0])
-    plt.show()

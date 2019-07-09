@@ -1,11 +1,12 @@
 import tensorflow as tf
 
+
 class Decoder_32x32(tf.keras.models.Model):
     def __init__(self):
         super().__init__()
         self.dense1 = tf.keras.layers.Dense(256)
-        self.dense2 = tf.keras.layers.Dense(7*7*16)
-        self.reshape = tf.keras.layers.Reshape(target_shape=(7,7,16))
+        self.dense2 = tf.keras.layers.Dense(7 * 7 * 16)
+        self.reshape = tf.keras.layers.Reshape(target_shape=(7, 7, 16))
 
         self.conv1 = tf.keras.layers.Conv2DTranspose(
             64,
@@ -16,7 +17,6 @@ class Decoder_32x32(tf.keras.models.Model):
             padding="valid",
         )
         self.bn1 = tf.keras.layers.BatchNormalization()
-
 
         self.conv2 = tf.keras.layers.Conv2DTranspose(
             64,
@@ -40,7 +40,7 @@ class Decoder_32x32(tf.keras.models.Model):
 
         self.reconstruction = tf.keras.layers.Conv2DTranspose(
             3,
-            kernel_size=(8,8),
+            kernel_size=(8, 8),
             strides=2,
             activation="linear",
             data_format="channels_last",
@@ -68,5 +68,6 @@ class Decoder_32x32(tf.keras.models.Model):
 
         x = self.reconstruction(x)
         return x
+
 
 DecoderCifar10 = Decoder_32x32

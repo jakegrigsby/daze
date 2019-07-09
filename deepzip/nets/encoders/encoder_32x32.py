@@ -1,5 +1,6 @@
 import tensorflow as tf
 
+
 class Encoder_32x32(tf.keras.models.Model):
     def __init__(self, latent_dim=32):
         super().__init__()
@@ -34,8 +35,8 @@ class Encoder_32x32(tf.keras.models.Model):
         self.bn3 = tf.keras.layers.BatchNormalization()
 
         self.flatten = tf.keras.layers.Flatten()
-        self.dense1 = tf.keras.layers.Dense(128, activation='linear')
-        self.dense2 = tf.keras.layers.Dense(latent_dim, activation='linear')
+        self.dense1 = tf.keras.layers.Dense(128, activation="linear")
+        self.dense2 = tf.keras.layers.Dense(latent_dim, activation="linear")
 
     def call(self, inputs):
         x = self.conv1(inputs)
@@ -56,5 +57,6 @@ class Encoder_32x32(tf.keras.models.Model):
         x = self.dense2(x)
 
         return x
+
 
 EncoderCifar10 = Encoder_32x32
