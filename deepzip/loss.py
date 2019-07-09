@@ -9,13 +9,25 @@ from .helpers import *
 
 mse = tf.keras.losses.mean_squared_error
 
-
 def kl(beta):
     def _beta(**kwargs):
         logvar = kwargs['logvar']
         mean = kwargs['mean']
         return beta*tf.reduce_mean(tf.math.reduce_sum(-.5*(1+logvar - tf.square(mean) - tf.math.exp(logvar))))
     return _beta
+
+def elbo():
+    """Evidence Lower Bound"""
+    def _elbo(**kwargs):
+        x_hat = kwargs['x_hat']
+        x = kwargs['x']
+        z = kwargs['z']
+        cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(logits=x_hat, labels=x)
+        logpx_z = -tf.reduce_sum(cross_ent, axis=[1,2,3])
+        logpz = log_normal_pdf(z, 0., 0.)
+        logqz_x = log_normal_pdf(z, mean, logvar)
+        return -tf.reduce_mean(logpx_z + logpz - logqz_x)
+    return _elbo
 
 def contractive(coeff):
     # this can't be compiled into a tf.function because of its gradient calculation

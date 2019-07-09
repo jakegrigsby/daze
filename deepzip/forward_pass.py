@@ -16,8 +16,6 @@ def probabalistic_encode_decode(model, original_x, x):
     }
 
 def standard_encode_decode(model, original_x, x):
-    """ Approximates x by encoding and decoding it.
-    """
     h = model.encode(x)
     x_hat = model.decode(h)
     return {

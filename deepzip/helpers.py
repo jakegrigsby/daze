@@ -19,3 +19,12 @@ def softmax(x):
 
 def kl_divergence(a, b):
     return a * tf.math.log(a) - a * tf.math.log(b) + (1 - a) * tf.math.log(1 - a) - (1 - a) * tf.math.log(1 - b)
+
+def sample(model, eps):
+    logits = model.decode(eps)
+    probs = tf.sigmoid(logits)
+    return probs
+    
+def sample_random(model):
+    eps = tf.random.normal(shape=(100, model.latent_dim))
+    return model.sample(eps)

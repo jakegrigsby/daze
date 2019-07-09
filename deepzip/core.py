@@ -114,9 +114,8 @@ class Model(tf.keras.Model):
         train_dataset = self.create_dataset(train_dataset, batch_size)
         val_dataset = self.create_dataset(val_dataset, batch_size)
 
-        log_writer = tf.summary.create_file_writer(log_dir)
         train_loss = tf.keras.metrics.Mean('train_loss', dtype=tf.float32)       
-        val_loss = tf.keras.metrics.Mean('val_loss', dtype=tf.float32)
+        val_loss = tf.keras.metrics.Mean('val_loss', dtype=tf.float32)       
         for epoch in range(epochs):
             start_time = time.time()
             if verbosity > 1: progbar = tf.keras.utils.Progbar(batch_count)
@@ -130,30 +129,25 @@ class Model(tf.keras.Model):
         
             for original_x in val_dataset:
                 loss, _ = self.compute_loss(original_x, original_x)
-                val_loss.update_state(loss)
-
-            with log_writer.as_default():
-                tf.summary.scalar('train_loss', train_loss.result(), step=epoch)
-                tf.summary.scalar('val_loss', val_loss.result(), step=epoch)
+                val_loss(loss)
 
             if verbosity >= 1:
                 print(f"Epoch {epoch}, Train_Loss {train_loss.result()}, Val_Loss {val_loss.result()} Train_Time {end_time - start_time}")
 
+            train_dict = {
+                'current_epoch' : epoch,
+                'train_loss' : train_loss,
+                'val_loss' : val_loss,
+                'epoch_start_time' : start_time,
+                'epoch_end_time' : end_time,
+                'checkpoint_dir' : checkpoint_dir,
+                'log_dir' : log_dir,
+            }
             if callbacks:
-                for callback in callbacks: callback(self)
+                for callback in callbacks: callback(self, **train_dict)
             
             train_loss.reset_states()
             val_loss.reset_states()
-        
+            
         self.save_weights(checkpoint_dir)
 
-"""
-    def sample(self, eps):
-        logits = self.decode(eps)
-        probs = tf.sigmoid(logits)
-        return probs
-        
-    def sample_random(self):
-        eps = tf.random.normal(shape=(100, self.latent_dim))
-        return self.sample(eps)
-"""
