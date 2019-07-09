@@ -54,10 +54,10 @@ def reconstruction():
         return mse(x, x_hat)
     return _reconstruction
 
-def latent_l1(beta):
+def latent_l1(gamma):
     def _latent_l1(**forward_pass_dict):
         h = forward_pass_dict['h']
-        return beta*tf.norm(h, ord=1)
+        return gamma*tf.norm(h, ord=1)
     return _latent_l1
 
 def sparsity(rho, beta):

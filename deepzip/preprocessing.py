@@ -27,3 +27,8 @@ def gaussian_noise(mean, std, seed=None):
         noise = tf.random.normal(input_batch.shape, mean, std, seed=seed)
         return input_batch + noise
     return _gaussian_noise
+
+def basic_image_normalize():
+    def _basic_image_normalize(input_batch):
+        return input_batch / 255.
+    return _basic_image_normalize
