@@ -5,10 +5,13 @@ deepzip/__pycache__/
 deepzip/data/__pycache__/
 
 deepzip/data/cifar10/__pycache__/
-
-experiments/data/
-
 *.pyc
 *.DS_Store
 
-data/
+deepzip/__pycache__
+deepzip/data/__pycache__
+deepzip/nets/__pycache__
+deepzip/nets/encoders/__pycache__
+deeipzip/nets/decoders/__pycache__
+deeipzip/tools/__pycache__
+deepzip.egg-info

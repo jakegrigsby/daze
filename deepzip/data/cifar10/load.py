@@ -14,7 +14,10 @@ def load(size=None):
 
 
 if __name__ == "__main__":
-    train, test = load()
+    train, val = load()
     import matplotlib.pyplot as plt
+    print("Loaded CIFAR10 Dataset...")
+    print(f"Training Set shape: {train.shape}")
+    print(f"Validation Set shape: {val.shape}")
     plt.imshow(train[0])
     plt.show()

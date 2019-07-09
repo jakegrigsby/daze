@@ -5,7 +5,7 @@ dev :
 	pip install -e .
 
 test :
-	pytest tests/
+	-pytest tests/
 	-rm -rf tests/saves*
 
 clean :
