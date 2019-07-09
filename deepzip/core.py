@@ -11,8 +11,6 @@ from . import helpers
 from . import forward_pass
 
 class Model(tf.keras.Model):
-    """ A basic autoencoder.
-    """
     def __init__(self, encoder, decoder, preprocessing_steps=[], forward_pass=forward_pass.standard_encode_decode, loss_funcs=[reconstruction()]):
         super().__init__()
         self.encoder, self.decoder = encoder, decoder
