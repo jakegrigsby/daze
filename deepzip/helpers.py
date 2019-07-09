@@ -13,3 +13,9 @@ def log_normal_pdf(sample, mean, logvar, raxis=1):
 def reparameterize(mean, logvar):
     eps = tf.random.normal(shape=mean.shape)
     return eps * tf.exp(logvar * .5) + mean
+
+def softmax(x):
+    return 1.*x / tf.math.reduce_sum(x)
+
+def kl_divergence(a, b):
+    return a * tf.math.log(a) - a * tf.math.log(b) + (1 - a) * tf.math.log(1 - a) - (1 - a) * tf.math.log(1 - b)

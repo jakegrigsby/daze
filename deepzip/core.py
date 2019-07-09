@@ -1,30 +1,24 @@
 import os
 import time
 import math
+import functools
 
 import numpy as np
 import tensorflow as tf
 
 from .loss import reconstruction
 from . import helpers
+from . import forward_pass
 
-class AutoEncoder(tf.keras.Model):
+class Model(tf.keras.Model):
     """ A basic autoencoder.
     """
-    def __init__(self, encoder, decoder, preprocessing_steps=[], call_func='ae', loss_funcs=[reconstruction()]):
+    def __init__(self, encoder, decoder, preprocessing_steps=[], forward_pass=forward_pass.standard_encode_decode, loss_funcs=[reconstruction()]):
         super().__init__()
         self.encoder, self.decoder = encoder, decoder
         self.preprocessing_steps = preprocessing_steps
+        self.call = functools.partial(forward_pass, self)
         self.loss_funcs = loss_funcs
-        self.choose_call_func(call_func)
-
-    def choose_call_func(self, call_func):
-        if call_func == 'ae':
-            self.call = self.call_ae
-        elif call_func == 'vae':
-            self.call = self.call_vae
-        else:
-            raise ValueError(f"Unrecognized value for call_func: {call_func}. Options are 'ae' and 'vae'.")
 
     def preprocess_input(self, x):
         for func in self.preprocessing_steps:
@@ -34,10 +28,11 @@ class AutoEncoder(tf.keras.Model):
     def compute_loss(self, original_x, x):
         with tf.GradientTape(persistent=True) as tape:
             tape.watch(x)
-            forward_pass = self.call(original_x, x)
+            forward_pass_dict = self.call(original_x, x)
+            forward_pass_dict['tape'] = tape
             loss = 0
             for loss_func in self.loss_funcs:
-                loss += loss_func(tape, *forward_pass)
+                loss += loss_func(**forward_pass_dict)
         return loss, tape
     
     def predict(self, x):
@@ -65,40 +60,26 @@ class AutoEncoder(tf.keras.Model):
     @property
     def trainable_variables(self):
         return self.encoder.trainable_variables + self.decoder.trainable_variables
-    
-    def call_ae(self, original_x, x):
-        """ Approximates x by encoding and decoding it.
-        """
-        h = self.encode(x)
-        x_hat = self.decode(h)
-        return original_x, x, h, x_hat
-    
-    def call_vae(self, original_x, x):
-        h = self.encode(x)
-        mean, logvar = tf.split(h, num_or_size_splits=2, axis=1)
-        z = helpers.reparameterize(mean, logvar)
-        x_logit = self.decode(z)
-        return original_x, x, h, mean, logvar, z, x_logit
-
+  
     def encode(self, x):
         return self.encoder(x)
 
     def decode(self, h):
         return self.decoder(h)
 
-    def init_logging(self, experiment_name):
+    def init_logging(self, save_path):
         """ Sets up log directories for training.
         """
-        directory = os.path.join('saves/', experiment_name)
+        save_path = os.path.join(os.getcwd(), save_path)
         # get unique number for this run
         i = 0
-        while os.path.exists(directory + f"_{i}"):
+        while os.path.exists(save_path + f"_{i}"):
             i += 1
-        directory += f"_{i}"
+        save_path += f"_{i}"
         # Setup checkpoints and logging
-        checkpoint_dir = os.path.join(directory, 'checkpoints')
+        checkpoint_dir = os.path.join(save_path, 'checkpoints')
         os.makedirs(checkpoint_dir)
-        log_dir = os.path.join(directory, 'logs')
+        log_dir = os.path.join(save_path, 'logs')
         os.makedirs(log_dir)
         return log_dir, checkpoint_dir
 
@@ -119,12 +100,12 @@ class AutoEncoder(tf.keras.Model):
         dataset = dataset.shuffle(dataset_size + 1).batch(batch_size)
         return dataset
     
-    def train(self, train_dataset, val_dataset, epochs=10, experiment_name='test', verbosity=1, callbacks=None, batch_size=64):
+    def train(self, train_dataset, val_dataset, epochs=10, save_path='saves', verbosity=1, callbacks=None, batch_size=64):
         """ Trains the model for a given number of epochs (iterations on a dataset).
 
         @TODO: implement callbacks, return a History object
         """
-        log_dir, checkpoint_dir = self.init_logging(experiment_name)
+        log_dir, checkpoint_dir = self.init_logging(save_path)
 
         optimizer = tf.keras.optimizers.Adam()
 
@@ -165,20 +146,14 @@ class AutoEncoder(tf.keras.Model):
             val_loss.reset_states()
         
         self.save_weights(checkpoint_dir)
-            
-class GenerativeAutoEncoder(AutoEncoder):
-    """ An autoencoder that encodes data as some distribution. Supports sampling. """
-    def __init__(self, encoder, decoder, preprocessing_steps=[], call_func='vae', loss_funcs=[reconstruction()], latent_dim=32):
-        super().__init__( encoder, decoder, preprocessing_steps=preprocessing_steps, call_func=call_func, loss_funcs=loss_funcs)
-        self.latent_dim = latent_dim # @TODO store in encoder?
-    
+
+"""
     def sample(self, eps):
-        """ Returns a sampling from the distribution, given a code vector."""
         logits = self.decode(eps)
         probs = tf.sigmoid(logits)
         return probs
         
     def sample_random(self):
-        """ Returns a random sampling from the distribution. """
         eps = tf.random.normal(shape=(100, self.latent_dim))
         return self.sample(eps)
+"""

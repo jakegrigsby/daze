@@ -2,45 +2,59 @@
 Module for custom loss functions
 """
 
-from .helpers import log_normal_pdf, reparameterize
-
 import numpy as np
 import tensorflow as tf
 
+from .helpers import *
+
 mse = tf.keras.losses.mean_squared_error
 
-def vae():
-    @tf.function
-    def _vae(tape, original_x, x, h, mean, logvar, z, x_logit):
-        cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(logits=x_logit, labels=x)
-        logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
-        logpz = log_normal_pdf(z, 0., 0.)
-        logqz_x = log_normal_pdf(z, mean, logvar)
-        return -tf.reduce_mean(logpx_z + logpz - logqz_x)
-    return _vae
+
+def kl(beta):
+    def _beta(**kwargs):
+        logvar = kwargs['logvar']
+        mean = kwargs['mean']
+        return beta*tf.reduce_mean(tf.math.reduce_sum(-.5*(1+logvar - tf.square(mean) - tf.math.exp(logvar))))
+    return _beta
 
 def contractive(coeff):
     # this can't be compiled into a tf.function because of its gradient calculation
-    def _contractive(tape, original_x, x, h, x_hat):
+    def _contractive(**kwargs):
+        h = kwargs['h']
+        x = kwargs['x']
+        tape = kwargs['tape']
         dh_dx = tape.gradient(h, x)
         frob_norm = tf.norm(dh_dx)
         return coeff*frob_norm
     return _contractive
 
-def denoising():
-    @tf.function
-    def _denoising(tape, original_x, x, h, x_hat):
+def denoising_reconstruction():
+    def _denoising(**kwargs):
+        original_x = kwargs['original_x']
+        x_hat = kwargs['x_hat']
         return mse(x_hat, original_x)
     return _denoising
 
 def reconstruction():
-    @tf.function
-    def _reconstruction(tape, original_x, x, h, x_hat):
+    def _reconstruction(**kwargs):
+        x = kwargs['x']
+        x_hat = kwargs['x_hat']
         return mse(x, x_hat)
     return _reconstruction
 
-def sparsity(coeff):
-    @tf.function
-    def _sparsity(tape, original_x, x, h, x_hat):
-        return coeff*tf.norm(h, ord=1)
+def latent_l1(beta):
+    def _latent_l1(**kwargs):
+        h = kwargs['h']
+        return beta*tf.norm(h, ord=1)
+    return _latent_l1
+
+def sparsity(rho, beta):
+    """
+    rho is the target sparsity value (~.01), beta is the coefficient for this term.
+    """
+    def _sparsity(**kwargs):
+        h = kwargs['h']
+        rho_hat = tf.reduce_mean(h, axis=0)
+        kl = kl_divergence(rho, rho_hat) 
+        return beta*tf.math.reduce_mean(kl)
     return _sparsity
