@@ -42,7 +42,7 @@ class Model(tf.keras.Model):
         return loss, tape
 
     def predict(self, x):
-        return self.call(x, x)[-1]
+        return self.call(x, x)['x_hat']
 
     @property
     def weights(self):

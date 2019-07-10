@@ -16,3 +16,5 @@ deeipzip/nets/decoders/__pycache__
 deeipzip/tools/__pycache__
 deepzip.egg-info
 \.coverage
+
+deepzip/tools/saves/

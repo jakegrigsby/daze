@@ -19,7 +19,7 @@ def train_encoder(model_type, dataset_type, epochs):
     else:
         raise ValueError(f"Invalid dataset code {datset_type}. Options are: 'cifar'...")
 
-    x_train, x_val = dataset.load(dtype='f')
+    x_train, x_val = dataset.load(dtype="f")
     x_train /= 255
     x_val /= 255
     encoder = Encoder_32x32()
@@ -28,28 +28,90 @@ def train_encoder(model_type, dataset_type, epochs):
 
     # Select algorithm type
     if model_type == "default":
-        model = dz.core.Model(Encoder_32x32(), Decoder_32x32(),)
-        model.train(x_train, x_val, callbacks=callbacks, save_path='saves/default', epochs=epochs, verbosity=2)
+        model = dz.core.Model(Encoder_32x32(), Decoder_32x32())
+        model.train(
+            x_train,
+            x_val,
+            callbacks=callbacks,
+            save_path="saves/default",
+            epochs=epochs,
+            verbosity=2,
+        )
     elif model_type == "vae":
-        model = dz.recipes.VariationalAutoEncoder(Encoder_32x32(), Decoder_32x32(), beta=1.1)
-        model.train(x_train, x_val, callbacks=callbacks, save_path='saves/vae', epochs=epochs, verbosity=2)
+        model = dz.recipes.VariationalAutoEncoder(
+            Encoder_32x32(), Decoder_32x32(), beta=1.1
+        )
+        model.train(
+            x_train,
+            x_val,
+            callbacks=callbacks,
+            save_path="saves/vae",
+            epochs=epochs,
+            verbosity=2,
+        )
     elif model_type == "denoising":
-        model = dz.recipes.DenoisingAutoEncoder(Encoder_32x32(), Decoder_32x32(), gamma=.1)
-        model.train(x_train, x_val, callbacks=callbacks, save_path='saves/denoising', epochs=epochs, verbosity=2)
+        model = dz.recipes.DenoisingAutoEncoder(
+            Encoder_32x32(), Decoder_32x32(), gamma=0.1
+        )
+        model.train(
+            x_train,
+            x_val,
+            callbacks=callbacks,
+            save_path="saves/denoising",
+            epochs=epochs,
+            verbosity=2,
+        )
     elif model_type == "l1sparse":
-        model = dz.recipes.L1SparseAutoEncoder(Encoder_32x32(), Decoder_32x32(), gamma=.1)
-        model.train(x_train, x_val, callbacks=callbacks, save_path='saves/l1sparse', epochs=epochs, verbosity=2)
+        model = dz.recipes.L1SparseAutoEncoder(
+            Encoder_32x32(), Decoder_32x32(), gamma=0.1
+        )
+        model.train(
+            x_train,
+            x_val,
+            callbacks=callbacks,
+            save_path="saves/l1sparse",
+            epochs=epochs,
+            verbosity=2,
+        )
     elif model_type == "contractive":
-        model = dz.recipes.ContractiveAutoEncoder(Encoder_32x32(), Decoder_32x32(), gamma=.1)
-        model.train(x_train, x_val, callbacks=callbacks, save_path='saves/contractive', epochs=epochs, verbosity=2)
+        model = dz.recipes.ContractiveAutoEncoder(
+            Encoder_32x32(), Decoder_32x32(), gamma=0.1
+        )
+        model.train(
+            x_train,
+            x_val,
+            callbacks=callbacks,
+            save_path="saves/contractive",
+            epochs=epochs,
+            verbosity=2,
+        )
     elif model_type == "bvae":
-        model = dz.recipes.BetaVariationalAutoEncoder(Encoder_32x32(), Decoder_32x32(), beta=1.1)
-        model.train(x_train, x_val, callbacks=callbacks, save_path='saves/bvae', epochs=epochs, verbosity=2)
+        model = dz.recipes.BetaVariationalAutoEncoder(
+            Encoder_32x32(), Decoder_32x32(), beta=1.1
+        )
+        model.train(
+            x_train,
+            x_val,
+            callbacks=callbacks,
+            save_path="saves/bvae",
+            epochs=epochs,
+            verbosity=2,
+        )
     elif model_type == "klsparse":
-        model = dz.recipes.KlSparseAutoEncoder(Encoder_32x32(), Decoder_32x32(), rho=.01, beta=.1)
-        model.train(x_train, x_val, callbacks=callbacks, save_path='saves/klsparse', epochs=epochs, verbosity=2)
+        model = dz.recipes.KlSparseAutoEncoder(
+            Encoder_32x32(), Decoder_32x32(), rho=0.01, beta=0.1
+        )
+        model.train(
+            x_train,
+            x_val,
+            callbacks=callbacks,
+            save_path="saves/klsparse",
+            epochs=epochs,
+            verbosity=2,
+        )
     else:
         raise ValueError("Invalid autoencoder type {}".format(model_type))
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -62,7 +124,7 @@ def main():
     if len(sys.argv) == 2:
         # model type is only command line arg
         model_type = sys.argv[1]
-        dataset = 'cifar'
+        dataset = "cifar"
         epochs = 10
     else:
         args = parser.parse_args()

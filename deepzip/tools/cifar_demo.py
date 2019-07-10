@@ -5,20 +5,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import deepzip as dz
+from deepzip.nets.encoders import Encoder_32x32
+from deepzip.nets.decoders import Decoder_32x32
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-weights", type=str)
     args = parser.parse_args()
 
-    weights = os.path.join("../data/", args.weights)
-
     model = dz.recipes.DenoisingAutoEncoder(
-        dz.nets.encoders.EasyEncoder(), dz.nets.decoders.EasyDecoder(), 0.15
+        Encoder_32x32(), Decoder_32x32(), gamma=.1,
     )
-    model.load_weights(weights)
+    model.load_weights(args.weights)
 
-    _, cifar_val = dz.data.cifar10.load()
+    _, cifar_val = dz.data.cifar10.load(dtype='f')
+    cifar_val /= 255.
     np.random.shuffle(cifar_val)
 
     test_images = cifar_val[:5, ...]
