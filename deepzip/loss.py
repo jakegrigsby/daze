@@ -11,6 +11,7 @@ mse = tf.keras.losses.mean_squared_error
 
 
 def kl(beta):
+    @tf.function
     def _beta(**forward_pass_dict):
         logvar = forward_pass_dict["logvar"]
         mean = forward_pass_dict["mean"]
@@ -25,7 +26,6 @@ def kl(beta):
 
 def elbo():
     """Evidence Lower Bound"""
-
     def _elbo(**forward_pass_dict):
         x_hat = forward_pass_dict["x_hat"]
         x = forward_pass_dict["x"]
@@ -53,6 +53,7 @@ def contractive(coeff):
 
 
 def denoising_reconstruction():
+    @tf.function
     def _denoising(**forward_pass_dict):
         original_x = forward_pass_dict["original_x"]
         x_hat = forward_pass_dict["x_hat"]
@@ -62,6 +63,7 @@ def denoising_reconstruction():
 
 
 def reconstruction():
+    @tf.function
     def _reconstruction(**forward_pass_dict):
         x = forward_pass_dict["x"]
         x_hat = forward_pass_dict["x_hat"]
@@ -71,6 +73,7 @@ def reconstruction():
 
 
 def latent_l1(gamma):
+    @tf.function
     def _latent_l1(**forward_pass_dict):
         h = forward_pass_dict["h"]
         return gamma * tf.norm(h, ord=1)
@@ -82,7 +85,7 @@ def sparsity(rho, beta):
     """
     rho is the target sparsity value (~.01), beta is the coefficient for this term.
     """
-
+    @tf.function
     def _sparsity(**forward_pass_dict):
         h = forward_pass_dict["h"]
         rho_hat = tf.reduce_mean(h, axis=0)

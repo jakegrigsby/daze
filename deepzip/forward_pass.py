@@ -2,6 +2,8 @@ import tensorflow as tf
 
 from . import helpers
 
+#TODO: figure out how to get these to work with @tf.function. the contractive loss function
+#is messing it up.
 
 def probabalistic_encode_decode(model, original_x, x):
     mean, logvar = tf.split(model.encode(x), num_or_size_splits=2, axis=1)

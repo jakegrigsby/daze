@@ -67,9 +67,11 @@ class Model(tf.keras.Model):
     def trainable_variables(self):
         return self.encoder.trainable_variables + self.decoder.trainable_variables
 
+    @tf.function
     def encode(self, x):
         return self.encoder(x)
 
+    @tf.function
     def decode(self, h):
         return self.decoder(h)
 
