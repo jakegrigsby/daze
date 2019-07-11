@@ -6,7 +6,7 @@ import tensorflow as tf
 # Autograph Tracing Utils #
 ###########################
 
-_TRACE_GRAPHS = True
+TRACE_GRAPHS = True
 _TRACE_RECORD = {}
 
 
@@ -14,8 +14,8 @@ def _add_to_trace_record(func):
     global _TRACE_RECORD
     name = func.__name__
     if name in _TRACE_RECORD:
-        count = _TRACE_RECORD[name]
         _TRACE_RECORD[name] += 1
+        count = _TRACE_RECORD[name]
         if count == 10:
             retrace_indicator(name)
     else:
@@ -28,7 +28,7 @@ def reset_trace_record():
 
 
 def trace_graph(func):
-    if _TRACE_GRAPHS:
+    if TRACE_GRAPHS:
 
         @wraps(func)
         @tf.function
