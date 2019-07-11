@@ -18,7 +18,7 @@ callbacks = [checkpoints(1), tensorboard()]
 ################################
 
 def test_default():
-    model = dz.core.Model(Encoder_32x32(), Decoder_32x32())
+    model = dz.Model(Encoder_32x32(), Decoder_32x32())
     model.train(x_train, x_val, callbacks=callbacks, save_path='tests/saves', epochs=1, verbosity=0)
 
 def test_vae():

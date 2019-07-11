@@ -28,7 +28,7 @@ def train_encoder(model_type, dataset_type, epochs):
 
     # Select algorithm type
     if model_type == "default":
-        model = dz.core.Model(Encoder_32x32(), Decoder_32x32())
+        model = dz.Model(Encoder_32x32(), Decoder_32x32())
         model.train(
             x_train,
             x_val,

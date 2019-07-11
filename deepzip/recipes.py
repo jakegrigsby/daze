@@ -1,4 +1,4 @@
-from .core import Model
+from .model import Model
 from . import preprocessing
 from . import loss
 from . import forward_pass
