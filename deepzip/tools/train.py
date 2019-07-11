@@ -21,9 +21,9 @@ def train_encoder(model_type, dataset_type, epochs):
 
     x_train, x_val = dataset.load(dtype="f")
     x_train /= 255
-    x_train = dz.data.utils.np_convert_to_tf(x_train, 32)
+    x_train = dz.data.utils.convert_np_to_tf(x_train, 32)
     x_val /= 255
-    x_val = dz.data.utils.np_convert_to_tf(x_val, 32)
+    x_val = dz.data.utils.convert_np_to_tf(x_val, 32)
     encoder = Encoder_32x32()
     decoder = Decoder_32x32()
     callbacks = [checkpoints(1), tensorboard()]

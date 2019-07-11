@@ -10,9 +10,9 @@ from deepzip.preprocessing import basic_image_normalize
 
 x_train, x_val = dz.data.cifar10.load(64, 'f32')
 x_train /= 255
-x_train = dz.data.utils.np_convert_to_tf(x_train, batch_size=32)
+x_train = dz.data.utils.convert_np_to_tf(x_train, batch_size=32)
 x_val /= 255
-x_val = dz.data.utils.np_convert_to_tf(x_val, batch_size=32)
+x_val = dz.data.utils.convert_np_to_tf(x_val, batch_size=32)
 callbacks = [checkpoints(1), tensorboard()]
 
 #######################
