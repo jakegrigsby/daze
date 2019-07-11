@@ -5,7 +5,8 @@ Module for custom loss functions
 import numpy as np
 import tensorflow as tf
 
-from .helpers import *
+from .math import *
+from .tracing import trace_graph
 
 mse = tf.keras.losses.mean_squared_error
 
@@ -26,6 +27,7 @@ def kl(beta):
 
 def elbo():
     """Evidence Lower Bound"""
+
     @trace_graph
     def _elbo(**forward_pass):
         x_hat = forward_pass["x_hat"]
@@ -92,6 +94,7 @@ def sparsity(rho, beta):
     """
     rho is the target sparsity value (~.01), beta is the coefficient for this term.
     """
+
     @trace_graph
     def _sparsity(**forward_pass):
         h = forward_pass["h"]

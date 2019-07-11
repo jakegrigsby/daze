@@ -1,9 +1,8 @@
 import tensorflow as tf
 
-from .helpers import *
+from .math import *
+from .tracing import trace_graph
 
-#TODO: figure out how to get these to work with @tf.function. the contractive loss function
-#is messing it up.
 
 @trace_graph
 def probabalistic_encode_decode(model, original_x, x):

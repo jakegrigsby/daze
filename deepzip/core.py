@@ -7,8 +7,9 @@ import numpy as np
 import tensorflow as tf
 
 from .loss import reconstruction
-from .helpers import trace_graph, reset_trace_record
 from . import forward_pass
+from .tracing import reset_trace_record, trace_graph
+
 
 class Model(tf.keras.Model):
     def __init__(
@@ -40,7 +41,7 @@ class Model(tf.keras.Model):
         return loss, tape
 
     def predict(self, x):
-        return self.call(x, x)['x_hat']
+        return self.call(x, x)["x_hat"]
 
     @property
     def weights(self):

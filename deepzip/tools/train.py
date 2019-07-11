@@ -38,9 +38,7 @@ def train_encoder(model_type, dataset_type, epochs):
             verbosity=2,
         )
     elif model_type == "vae":
-        model = dz.recipes.VariationalAutoEncoder(
-            Encoder_32x32(), Decoder_32x32(),
-        )
+        model = dz.recipes.VariationalAutoEncoder(Encoder_32x32(), Decoder_32x32())
         model.train(
             x_train,
             x_val,

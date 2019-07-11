@@ -13,13 +13,11 @@ if __name__ == "__main__":
     parser.add_argument("-weights", type=str)
     args = parser.parse_args()
 
-    model = dz.recipes.DenoisingAutoEncoder(
-        Encoder_32x32(), Decoder_32x32(), gamma=.1,
-    )
+    model = dz.recipes.DenoisingAutoEncoder(Encoder_32x32(), Decoder_32x32(), gamma=0.1)
     model.load_weights(args.weights)
 
-    _, cifar_val = dz.data.cifar10.load(dtype='f')
-    cifar_val /= 255.
+    _, cifar_val = dz.data.cifar10.load(dtype="f")
+    cifar_val /= 255.0
     np.random.shuffle(cifar_val)
 
     test_images = cifar_val[:5, ...]
