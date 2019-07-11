@@ -87,4 +87,9 @@ def test_boston_batch():
 def test_boston_all():
     x_train, x_val = dz.data.boston_housing.load()
     assert(x_train.shape[0] > x_val.shape[0])
-    
+
+def test_dataset_from_ndarray_with_batch_count():
+    x_train, _ = dz.data.cifar10.load(64)
+    x_train, batch_count = dz.data.utils.dataset_from_ndarray_with_batch_count(x_train, 32)
+    assert(isinstance(x_train, tf.data.Dataset))
+    assert(batch_count == 2)

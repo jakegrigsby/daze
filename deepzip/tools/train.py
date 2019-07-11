@@ -36,6 +36,7 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/default",
             epochs=epochs,
             verbosity=2,
+            batch_size=64,
         )
     elif model_type == "vae":
         model = dz.recipes.VariationalAutoEncoder(Encoder_32x32(), Decoder_32x32())
@@ -46,6 +47,7 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/vae",
             epochs=epochs,
             verbosity=2,
+            batch_size=64,
         )
     elif model_type == "denoising":
         model = dz.recipes.DenoisingAutoEncoder(
@@ -58,6 +60,7 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/denoising",
             epochs=epochs,
             verbosity=2,
+            batch_size=64,
         )
     elif model_type == "l1sparse":
         model = dz.recipes.L1SparseAutoEncoder(
@@ -70,6 +73,7 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/l1sparse",
             epochs=epochs,
             verbosity=2,
+            batch_size=64,
         )
     elif model_type == "contractive":
         model = dz.recipes.ContractiveAutoEncoder(
@@ -82,6 +86,7 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/contractive",
             epochs=epochs,
             verbosity=2,
+            batch_size=64,
         )
     elif model_type == "bvae":
         model = dz.recipes.BetaVariationalAutoEncoder(
@@ -94,6 +99,7 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/bvae",
             epochs=epochs,
             verbosity=2,
+            batch_size=64,
         )
     elif model_type == "klsparse":
         model = dz.recipes.KlSparseAutoEncoder(
@@ -106,6 +112,7 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/klsparse",
             epochs=epochs,
             verbosity=2,
+            batch_size=64,
         )
     else:
         raise ValueError("Invalid autoencoder type {}".format(model_type))

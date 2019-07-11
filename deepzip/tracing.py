@@ -7,20 +7,24 @@ import tensorflow as tf
 # Autograph Tracing Utils #
 ###########################
 
+
 def trace_graphs_suggestion():
-    print("\n"
+    print(
+        "\n"
         "*********************************************************************************\n"
         "Running in pure eager execution mode. For better performance, trace to Tensorflow\n"
         "graphs by setting the environment variable `dz_trace_graphs` to `True`"
         " \n `$ export dz_trace_graphs=True`\n"
-        
         "Some functionality is not supported in graph mode (e.g. contractive loss terms)\n"
         "*********************************************************************************\n"
         "\n"
     )
 
+
 try:
-    TRACE_GRAPHS = True if os.environ['dz_trace_graphs'] in ["True", "true", 't'] else False
+    TRACE_GRAPHS = (
+        True if os.environ["dz_trace_graphs"] in ["True", "true", "t"] else False
+    )
 except:
     TRACE_GRAPHS = False
 
@@ -83,4 +87,3 @@ def retrace_indicator(func_name):
         "https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/function "
         "for more information."
     )
-

@@ -45,8 +45,11 @@ def elbo():
 def contractive(coeff):
     # this can't be compiled into a tf.function because of its gradient calculation
     if TRACE_GRAPHS:
-        raise ValueError("Autograph tracing not supported for contractive loss. Set dz_trace_graphs environment variable to false:"
-            "\t`$ export dz_trace_graphs=False`")
+        raise ValueError(
+            "Autograph tracing not supported for contractive loss. Set dz_trace_graphs environment variable to false:"
+            "\t`$ export dz_trace_graphs=False`"
+        )
+
     def _contractive(**forward_pass):
         h = forward_pass["h"]
         x = forward_pass["x"]

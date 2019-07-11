@@ -9,6 +9,7 @@ import tensorflow as tf
 from .loss import reconstruction
 from . import forward_pass
 from .tracing import reset_trace_record, trace_graph
+from . import data
 
 
 class Model(tf.keras.Model):
@@ -109,11 +110,40 @@ class Model(tf.keras.Model):
         """ Applies the gradients to the optimizer. """
         optimizer.apply_gradients(zip(gradients, variables))
 
-    def create_dataset(self, numpy_dataset, batch_size):
-        dataset_size = numpy_dataset.shape[0]
-        dataset = tf.data.Dataset.from_tensor_slices(numpy_dataset)
-        dataset = dataset.shuffle(dataset_size + 1).batch(batch_size)
-        return dataset
+    def _resolve_datasets(
+        self, train_dataset, val_dataset, batch_size, batch_count, verbosity
+    ):
+        """
+        Black completely ruins this formatting
+        """
+        passed_tf_dataset = isinstance(train_dataset, tf.data.Dataset) and isinstance(
+            val_dataset, tf.data.Dataset
+        )
+        passed_np_dataset = isinstance(train_dataset, np.ndarray) and isinstance(
+            val_dataset, np.ndarray
+        )
+        if not passed_tf_dataset and not passed_np_dataset:
+            raise ValueError(
+                self._dataset_consistency_warning(
+                    type(train_dataset), type(val_dataset)
+                )
+            )
+        if passed_tf_dataset:
+            if batch_size:
+                print(self._tf_batch_size_warning)
+            if not batch_count and verbosity > 1:
+                print(self._verbosity_compatability_warning)
+                verbosity = 1
+        if passed_np_dataset:
+            if not batch_size:
+                raise ValueError(self._batch_size_warning)
+            if batch_count:
+                print(self._batch_count_warning)
+            train_dataset, batch_count = data.utils.np_convert_to_tf(
+                train_dataset, batch_size
+            )
+            val_dataset, _ = data.utils.np_convert_to_tf(val_dataset, batch_size)
+        return train_dataset, val_dataset, batch_size, batch_count, verbosity
 
     def train(
         self,
@@ -123,20 +153,19 @@ class Model(tf.keras.Model):
         save_path="saves",
         verbosity=1,
         callbacks=None,
-        batch_size=64,
+        batch_size=None,
+        batch_count=None,
     ):
         """ Trains the model for a given number of epochs (iterations on a dataset).
         """
         reset_trace_record()
         log_dir, checkpoint_dir = self.init_logging(save_path)
 
+        train_dataset, val_dataset, batch_size, batch_count, verbosity = self._resolve_datasets(
+            train_dataset, val_dataset, batch_size, batch_count, verbosity
+        )
+
         optimizer = tf.keras.optimizers.Adam()
-
-        train_set_size = train_dataset.shape[0]
-        batch_count = math.ceil(train_set_size / batch_size)
-        train_dataset = self.create_dataset(train_dataset, batch_size)
-        val_dataset = self.create_dataset(val_dataset, batch_size)
-
         train_loss = tf.keras.metrics.Mean("train_loss", dtype=tf.float32)
         val_loss = tf.keras.metrics.Mean("val_loss", dtype=tf.float32)
         for epoch in range(epochs):
@@ -178,3 +207,18 @@ class Model(tf.keras.Model):
             val_loss.reset_states()
 
         self.save_weights(checkpoint_dir)
+
+    _verbosity_compatability_warning = (
+        "\nPassed tf.data datasets without specifying batch_count, which cannot be inferred from an iterator. "
+        "Therefore, verbosity modes > 1 are not available. Setting verbosity to 1."
+    )
+
+    _batch_size_warning = "\nUsing numpy dataset without specifying batch_size. Please add the `batch_size` kwarg to your Model.train call."
+    _batch_count_warning = "\n`batch_count` arg not relevant when using numpy datasets."
+
+    _dataset_consistency_warning = lambda self, train_type, val_type: (
+        f"\nDataset types must be consistent. Passed train_dataset of type {train_type}"
+        f"and val_dataset of type {val_type}"
+    )
+
+    _tf_batch_size_warning = "\n`batch_size` arg not relevant when using tf Datasets. Batch your dataset before training using `dataset.batch(batch_size)`"
