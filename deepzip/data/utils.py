@@ -45,14 +45,11 @@ def parse_dtype(s):
         return err()
 
 
-def dataset_from_ndarray_with_batch_count(numpy_dataset, batch_size):
-    dataset_size = numpy_dataset.shape[0]
-    batch_count = math.ceil(dataset_size / batch_size)
-    dataset = tf.data.Dataset.from_tensor_slices(numpy_dataset)
+def np_convert_to_tf(np_dataset, batch_size, return_batch_count=False):
+    dataset_size = np_dataset.shape[0]
+    dataset = tf.data.Dataset.from_tensor_slices(np_dataset)
     dataset = dataset.shuffle(dataset_size + 1).batch(batch_size)
-    return dataset, batch_count
-
-
-def np_convert_to_tf(dataset, batch_size):
-    dataset, batch_count = dataset_from_ndarray_with_batch_count(dataset, batch_size)
-    return dataset, batch_count
+    if return_batch_count:
+        batch_count = math.ceil(dataset_size / batch_size)
+        return dataset, batch_count
+    return dataset

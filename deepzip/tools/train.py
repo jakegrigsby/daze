@@ -21,7 +21,9 @@ def train_encoder(model_type, dataset_type, epochs):
 
     x_train, x_val = dataset.load(dtype="f")
     x_train /= 255
+    x_train = dz.data.utils.np_convert_to_tf(x_train, 32)
     x_val /= 255
+    x_val = dz.data.utils.np_convert_to_tf(x_val, 32)
     encoder = Encoder_32x32()
     decoder = Decoder_32x32()
     callbacks = [checkpoints(1), tensorboard()]
@@ -36,7 +38,6 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/default",
             epochs=epochs,
             verbosity=2,
-            batch_size=64,
         )
     elif model_type == "vae":
         model = dz.recipes.VariationalAutoEncoder(Encoder_32x32(), Decoder_32x32())
@@ -47,7 +48,6 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/vae",
             epochs=epochs,
             verbosity=2,
-            batch_size=64,
         )
     elif model_type == "denoising":
         model = dz.recipes.DenoisingAutoEncoder(
@@ -60,7 +60,6 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/denoising",
             epochs=epochs,
             verbosity=2,
-            batch_size=64,
         )
     elif model_type == "l1sparse":
         model = dz.recipes.L1SparseAutoEncoder(
@@ -73,7 +72,6 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/l1sparse",
             epochs=epochs,
             verbosity=2,
-            batch_size=64,
         )
     elif model_type == "contractive":
         model = dz.recipes.ContractiveAutoEncoder(
@@ -86,7 +84,6 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/contractive",
             epochs=epochs,
             verbosity=2,
-            batch_size=64,
         )
     elif model_type == "bvae":
         model = dz.recipes.BetaVariationalAutoEncoder(
@@ -99,7 +96,6 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/bvae",
             epochs=epochs,
             verbosity=2,
-            batch_size=64,
         )
     elif model_type == "klsparse":
         model = dz.recipes.KlSparseAutoEncoder(
@@ -112,7 +108,6 @@ def train_encoder(model_type, dataset_type, epochs):
             save_path="saves/klsparse",
             epochs=epochs,
             verbosity=2,
-            batch_size=64,
         )
     else:
         raise ValueError("Invalid autoencoder type {}".format(model_type))
