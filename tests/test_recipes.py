@@ -37,11 +37,13 @@ def test_l1sparse():
     model = dz.recipes.L1SparseAutoEncoder(Encoder_32x32(), Decoder_32x32(), gamma=.1)
     model.train(x_train, x_val, callbacks=callbacks, save_path='tests/saves', epochs=1, verbosity=0)
 
-"""
 def test_contractive():
-    model = dz.recipes.ContractiveAutoEncoder(Encoder_32x32(), Decoder_32x32(), gamma=.1)
-    model.train(x_train, x_val, callbacks=callbacks, save_path='tests/saves', epochs=1, verbosity=0)
-"""
+    if dz.tracing.TRACE_GRAPHS:
+        with pytest.raises(ValueError):
+            model = dz.recipes.ContractiveAutoEncoder(Encoder_32x32(), Decoder_32x32(), gamma=.1)
+    else:
+        model = dz.recipes.ContractiveAutoEncoder(Encoder_32x32(), Decoder_32x32(), gamma=.1)
+        model.train(x_train, x_val, callbacks=callbacks, save_path='tests/saves', epochs=1, verbosity=0)
 
 def test_beta_vae():
     model = dz.recipes.BetaVariationalAutoEncoder(Encoder_32x32(), Decoder_32x32(), beta=1.1)

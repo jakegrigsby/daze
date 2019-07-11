@@ -4,11 +4,9 @@ from . import loss
 from . import forward_pass
 
 
-"""
 def ContractiveAutoEncoder(encoder, decoder, gamma, preprocessing_steps=[]):
     loss_funcs = [loss.reconstruction(), loss.contractive(0.1)]
     return Model(encoder, decoder, loss_funcs=loss_funcs)
-"""
 
 
 def DenoisingAutoEncoder(encoder, decoder, gamma, preprocessing_steps=[]):

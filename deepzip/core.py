@@ -26,6 +26,12 @@ class Model(tf.keras.Model):
         self.call = functools.partial(forward_pass_func, self)
         self.loss_funcs = loss_funcs
 
+        class _TapeContainer:
+            def __init__(self):
+                self.tape = None
+
+        self.tape_container = _TapeContainer()
+
     def preprocess_input(self, x):
         for func in self.preprocessing_steps:
             x = func(x)
@@ -35,6 +41,8 @@ class Model(tf.keras.Model):
         with tf.GradientTape(persistent=True) as tape:
             tape.watch(x)
             forward_pass = self.call(original_x, x)
+            self.tape_container.tape = tape
+            forward_pass["tape_container"] = self.tape_container
             loss = 0
             for loss_func in self.loss_funcs:
                 loss += loss_func(**forward_pass)

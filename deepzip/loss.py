@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 
 from .math import *
-from .tracing import trace_graph
+from .tracing import trace_graph, TRACE_GRAPHS
 
 mse = tf.keras.losses.mean_squared_error
 
@@ -42,23 +42,19 @@ def elbo():
     return _elbo
 
 
-"""
-Contractive loss doesn't work with this setup because passing the gradient tape
-into the forward_pass/kwargs slot causes autograph to retrace the function with
-every call.
-
 def contractive(coeff):
     # this can't be compiled into a tf.function because of its gradient calculation
+    if TRACE_GRAPHS:
+        raise ValueError("Autograph tracing not supported for contractive loss. Set tracing.TRACE_GRAPHS to false.")
     def _contractive(**forward_pass):
         h = forward_pass["h"]
         x = forward_pass["x"]
-        tape = forward_pass["tape"]
+        tape = forward_pass["tape_container"].tape
         dh_dx = tape.gradient(h, x)
         frob_norm = tf.norm(dh_dx)
         return coeff * frob_norm
 
     return _contractive
-"""
 
 
 def denoising_reconstruction():

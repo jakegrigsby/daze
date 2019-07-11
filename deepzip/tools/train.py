@@ -71,7 +71,6 @@ def train_encoder(model_type, dataset_type, epochs):
             epochs=epochs,
             verbosity=2,
         )
-        """
     elif model_type == "contractive":
         model = dz.recipes.ContractiveAutoEncoder(
             Encoder_32x32(), Decoder_32x32(), gamma=0.1
@@ -84,7 +83,6 @@ def train_encoder(model_type, dataset_type, epochs):
             epochs=epochs,
             verbosity=2,
         )
-        """
     elif model_type == "bvae":
         model = dz.recipes.BetaVariationalAutoEncoder(
             Encoder_32x32(), Decoder_32x32(), beta=1.1
