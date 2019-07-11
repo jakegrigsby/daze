@@ -7,9 +7,8 @@ import numpy as np
 import tensorflow as tf
 
 from .loss import reconstruction
-from . import helpers
+from .helpers import trace_graph, reset_trace_record
 from . import forward_pass
-
 
 class Model(tf.keras.Model):
     def __init__(
@@ -17,13 +16,13 @@ class Model(tf.keras.Model):
         encoder,
         decoder,
         preprocessing_steps=[],
-        forward_pass=forward_pass.standard_encode_decode,
+        forward_pass_func=forward_pass.standard_encode_decode,
         loss_funcs=[reconstruction()],
     ):
         super().__init__()
         self.encoder, self.decoder = encoder, decoder
         self.preprocessing_steps = preprocessing_steps
-        self.call = functools.partial(forward_pass, self)
+        self.call = functools.partial(forward_pass_func, self)
         self.loss_funcs = loss_funcs
 
     def preprocess_input(self, x):
@@ -34,11 +33,10 @@ class Model(tf.keras.Model):
     def compute_loss(self, original_x, x):
         with tf.GradientTape(persistent=True) as tape:
             tape.watch(x)
-            forward_pass_dict = self.call(original_x, x)
-            forward_pass_dict["tape"] = tape
+            forward_pass = self.call(original_x, x)
             loss = 0
             for loss_func in self.loss_funcs:
-                loss += loss_func(**forward_pass_dict)
+                loss += loss_func(**forward_pass)
         return loss, tape
 
     def predict(self, x):
@@ -67,11 +65,11 @@ class Model(tf.keras.Model):
     def trainable_variables(self):
         return self.encoder.trainable_variables + self.decoder.trainable_variables
 
-    @tf.function
+    @trace_graph
     def encode(self, x):
         return self.encoder(x)
 
-    @tf.function
+    @trace_graph
     def decode(self, h):
         return self.decoder(h)
 
@@ -119,9 +117,8 @@ class Model(tf.keras.Model):
         batch_size=64,
     ):
         """ Trains the model for a given number of epochs (iterations on a dataset).
-
-        @TODO: implement callbacks, return a History object
         """
+        reset_trace_record()
         log_dir, checkpoint_dir = self.init_logging(save_path)
 
         optimizer = tf.keras.optimizers.Adam()

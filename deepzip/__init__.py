@@ -4,3 +4,6 @@ from . import loss
 from . import core
 from . import preprocessing
 from . import recipes
+from . import forward_pass
+from . import callbacks
+from . import helpers

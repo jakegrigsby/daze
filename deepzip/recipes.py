@@ -4,9 +4,11 @@ from . import loss
 from . import forward_pass
 
 
+"""
 def ContractiveAutoEncoder(encoder, decoder, gamma, preprocessing_steps=[]):
     loss_funcs = [loss.reconstruction(), loss.contractive(0.1)]
     return Model(encoder, decoder, loss_funcs=loss_funcs)
+"""
 
 
 def DenoisingAutoEncoder(encoder, decoder, gamma, preprocessing_steps=[]):
@@ -24,7 +26,7 @@ def VariationalAutoEncoder(encoder, decoder, preprocessing_steps=[]):
         decoder,
         preprocessing_steps=preprocessing_steps,
         loss_funcs=loss_funcs,
-        forward_pass=forward_pass.probabalistic_encode_decode,
+        forward_pass_func=forward_pass.probabalistic_encode_decode,
     )
 
 
@@ -34,7 +36,7 @@ def BetaVariationalAutoEncoder(encoder, decoder, beta, preprocessing_steps=[]):
         encoder,
         decoder,
         preprocessing_steps=preprocessing_steps,
-        forward_pass=forward_pass.probabalistic_encode_decode,
+        forward_pass_func=forward_pass.probabalistic_encode_decode,
         loss_funcs=loss_funcs,
     )
 

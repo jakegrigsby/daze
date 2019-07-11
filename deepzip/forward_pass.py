@@ -1,13 +1,14 @@
 import tensorflow as tf
 
-from . import helpers
+from .helpers import *
 
 #TODO: figure out how to get these to work with @tf.function. the contractive loss function
 #is messing it up.
 
+@trace_graph
 def probabalistic_encode_decode(model, original_x, x):
     mean, logvar = tf.split(model.encode(x), num_or_size_splits=2, axis=1)
-    z = helpers.reparameterize(mean, logvar)
+    z = reparameterize(mean, logvar)
     x_hat = model.decode(z)
     return {
         "original_x": original_x,
@@ -19,6 +20,7 @@ def probabalistic_encode_decode(model, original_x, x):
     }
 
 
+@trace_graph
 def standard_encode_decode(model, original_x, x):
     h = model.encode(x)
     x_hat = model.decode(h)
