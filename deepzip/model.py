@@ -51,6 +51,10 @@ class Model(tf.keras.Model):
 
     def predict(self, x):
         return self.call(x, x)["x_hat"]
+    
+    @trace_graph
+    def encode(self, x):
+        return self.encoder(x)
 
     @property
     def weights(self):
