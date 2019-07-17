@@ -1,3 +1,4 @@
+.eggs/
 deepzip\.egg-info/
 
 deepzip/__pycache__/
