@@ -1,2 +1,2 @@
 [run]
-omit = deepzip/tools/*
+omit = daze/tools/*

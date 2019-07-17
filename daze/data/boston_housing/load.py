@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 
-import deepzip as dz
+import daze as dz
 
 
 def load(size=None, dtype=None):

@@ -148,7 +148,7 @@ class Model(tf.keras.Model):
         for epoch in range(epochs):
             if verbosity > 1:
                 if batch_count:
-                    progbar = tf.keras.utils.Progbar(batch_count + 1)
+                    progbar = tf.keras.utils.Progbar(batch_count)
                 else:
                     print(
                         "Beginning Training. Progress bar will appear after first epoch."

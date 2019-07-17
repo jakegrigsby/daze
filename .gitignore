@@ -1,21 +1,21 @@
 .eggs/
-deepzip\.egg-info/
+daze\.egg-info/
 
-deepzip/__pycache__/
+daze/__pycache__/
 
-deepzip/data/__pycache__/
+daze/data/__pycache__/
 
-deepzip/data/cifar10/__pycache__/
+daze/data/cifar10/__pycache__/
 *.pyc
 *.DS_Store
 
-deepzip/__pycache__
-deepzip/data/__pycache__
-deepzip/nets/__pycache__
-deepzip/nets/encoders/__pycache__
-deeipzip/nets/decoders/__pycache__
-deeipzip/tools/__pycache__
-deepzip.egg-info
+daze/__pycache__
+daze/data/__pycache__
+daze/nets/__pycache__
+daze/nets/encoders/__pycache__
+daze/nets/decoders/__pycache__
+daze/tools/__pycache__
+daze.egg-info
 \.coverage
 
-deepzip/tools/saves/
+daze/tools/saves/

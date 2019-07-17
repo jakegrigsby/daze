@@ -5,7 +5,7 @@ dev :
 	pip install -e .
 
 test :
-	-pytest --cov=deepzip --cov-report term-missing tests/
+	-pytest --cov=daze --cov-report term-missing tests/
 	-rm -rf tests/saves*
 
 clean :

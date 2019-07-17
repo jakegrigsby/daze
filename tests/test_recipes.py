@@ -2,11 +2,11 @@ import pytest
 
 import tensorflow as tf
 
-import deepzip as dz
-from deepzip.nets.encoders import Encoder_32x32
-from deepzip.nets.decoders import Decoder_32x32
-from deepzip.callbacks import checkpoints, tensorboard
-from deepzip.preprocessing import basic_image_normalize
+import daze as dz
+from daze.nets.encoders import Encoder_32x32
+from daze.nets.decoders import Decoder_32x32
+from daze.callbacks import checkpoints, tensorboard
+from daze.preprocessing import basic_image_normalize
 
 x_train, x_val = dz.data.cifar10.load(64, "f32")
 x_train /= 255

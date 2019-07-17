@@ -3,7 +3,7 @@ from functools import wraps
 import numpy as np
 import tensorflow as tf
 
-import deepzip as dz
+import daze as dz
 
 ###################
 # Misc Math Funcs #

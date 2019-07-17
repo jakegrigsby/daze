@@ -2,7 +2,7 @@ import pytest
 import tensorflow as tf
 import numpy as np
 
-from deepzip.preprocessing import *
+from daze.preprocessing import *
 
 
 def test_basic_image_normalize():

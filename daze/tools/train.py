@@ -10,33 +10,27 @@ from deepzip.callbacks import checkpoints, tensorboard
 from deepzip.preprocessing import basic_image_normalize
 
 
-def train_encoder(model_type, dataset_type, epochs, batch_size=None):
+def train_encoder(model_type, dataset_type, epochs):
     # Use dataset to infer encoder, decoder
     if dataset_type in ["cifar", "cifar10"]:
         dataset = dz.data.cifar10
-        encoder = Encoder_32x32()
-        decoder = Decoder_32x32()
     elif dataset_type in ["mnist"]:
         dataset = dz.data.mnist
-        encoder = EasyEncoder()
-        decoder = EasyDecoder()
     else:
         raise ValueError(f"Invalid dataset code {datset_type}. Options are: 'cifar'...")
 
-    if batch_size:
-        x_train, x_val = dataset.load(batch_size, dtype="f")
-    else:
-        x_train, x_val = dataset.load(dtype="f")
-        
+    x_train, x_val = dataset.load(dtype="f")
     x_train /= 255
     x_train = dz.data.utils.convert_np_to_tf(x_train, 32)
     x_val /= 255
     x_val = dz.data.utils.convert_np_to_tf(x_val, 32)
+    encoder = Encoder_32x32()
+    decoder = Decoder_32x32()
     callbacks = [checkpoints(1), tensorboard()]
 
     # Select algorithm type
     if model_type == "default":
-        model = dz.Model(encoder, decoder)
+        model = dz.Model(Encoder_32x32(), Decoder_32x32())
         model.train(
             x_train,
             x_val,
@@ -46,7 +40,7 @@ def train_encoder(model_type, dataset_type, epochs, batch_size=None):
             verbosity=2,
         )
     elif model_type == "vae":
-        model = dz.recipes.VariationalAutoEncoder(encoder, decoder)
+        model = dz.recipes.VariationalAutoEncoder(Encoder_32x32(), Decoder_32x32())
         model.train(
             x_train,
             x_val,
@@ -56,8 +50,9 @@ def train_encoder(model_type, dataset_type, epochs, batch_size=None):
             verbosity=2,
         )
     elif model_type == "denoising":
-        model = dz.recipes.DenoisingAutoEncoder(encoder, decoder, gamma=0.1)
-        
+        model = dz.recipes.DenoisingAutoEncoder(
+            Encoder_32x32(), Decoder_32x32(), gamma=0.1
+        )
         model.train(
             x_train,
             x_val,
@@ -67,8 +62,9 @@ def train_encoder(model_type, dataset_type, epochs, batch_size=None):
             verbosity=2,
         )
     elif model_type == "l1sparse":
-        model = dz.recipes.L1SparseAutoEncoder(encoder, decoder, gamma=0.1)
-        
+        model = dz.recipes.L1SparseAutoEncoder(
+            Encoder_32x32(), Decoder_32x32(), gamma=0.1
+        )
         model.train(
             x_train,
             x_val,
@@ -78,8 +74,9 @@ def train_encoder(model_type, dataset_type, epochs, batch_size=None):
             verbosity=2,
         )
     elif model_type == "contractive":
-        model = dz.recipes.ContractiveAutoEncoder(encoder, decoder, gamma=0.1)
-        
+        model = dz.recipes.ContractiveAutoEncoder(
+            Encoder_32x32(), Decoder_32x32(), gamma=0.1
+        )
         model.train(
             x_train,
             x_val,
@@ -90,9 +87,8 @@ def train_encoder(model_type, dataset_type, epochs, batch_size=None):
         )
     elif model_type == "bvae":
         model = dz.recipes.BetaVariationalAutoEncoder(
-            encoder, decoder, beta=0.1
+            Encoder_32x32(), Decoder_32x32(), beta=1.1
         )
-        
         model.train(
             x_train,
             x_val,
@@ -103,7 +99,7 @@ def train_encoder(model_type, dataset_type, epochs, batch_size=None):
         )
     elif model_type == "klsparse":
         model = dz.recipes.KlSparseAutoEncoder(
-            encoder, decoder, rho=0.01, beta=0.1
+            Encoder_32x32(), Decoder_32x32(), rho=0.01, beta=0.1
         )
         model.train(
             x_train,
@@ -125,7 +121,6 @@ def main():
     )
     parser.add_argument("-dataset", default="cifar", type=str)
     parser.add_argument("-epochs", default=10, type=int)
-    parser.add_argument("--batch_size", default=None, type=int)
     if len(sys.argv) == 2:
         # model type is only command line arg
         model_type = sys.argv[1]
@@ -136,7 +131,7 @@ def main():
         model_type = args.type
         dataset = args.dataset
         epochs = args.epochs
-    train_encoder(model_type, dataset, epochs, batch_size=args.batch_size)
+    train_encoder(model_type, dataset, epochs)
 
 
 if __name__ == "__main__":

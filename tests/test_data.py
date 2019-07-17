@@ -2,9 +2,9 @@ import pytest
 import tensorflow as tf
 import numpy as np
 
-import deepzip as dz
-from deepzip.nets.encoders import EasyEncoder
-from deepzip.nets.decoders import EasyDecoder
+import daze as dz
+from daze.nets.encoders import EasyEncoder
+from daze.nets.decoders import EasyDecoder
 
 
 def test_default_dtypes():

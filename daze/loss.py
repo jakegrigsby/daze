@@ -13,7 +13,7 @@ mse = tf.keras.losses.mean_squared_error
 
 def kl(beta):
     @trace_graph
-    def _kl(**forward_pass):
+    def _beta(**forward_pass):
         logvar = forward_pass["logvar"]
         mean = forward_pass["mean"]
         return beta * tf.reduce_mean(
@@ -22,7 +22,24 @@ def kl(beta):
             )
         )
 
-    return _kl
+    return _beta
+
+
+def elbo():
+    """Evidence Lower Bound"""
+
+    @trace_graph
+    def _elbo(**forward_pass):
+        x_hat = forward_pass["x_hat"]
+        x = forward_pass["x"]
+        z = forward_pass["z"]
+        cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(logits=x_hat, labels=x)
+        logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
+        logpz = log_normal_pdf(z, 0.0, 0.0)
+        logqz_x = log_normal_pdf(z, mean, logvar)
+        return -tf.reduce_mean(logpx_z + logpz - logqz_x)
+
+    return _elbo
 
 
 def contractive(coeff):

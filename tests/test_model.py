@@ -2,9 +2,9 @@ import pytest
 
 import numpy as np
 
-import deepzip as dz
-from deepzip.nets.encoders import Encoder_32x32
-from deepzip.nets.decoders import Decoder_32x32
+import daze as dz
+from daze.nets.encoders import Encoder_32x32
+from daze.nets.decoders import Decoder_32x32
 
 
 def test_get_batch_encodings_np():
