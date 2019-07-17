@@ -52,6 +52,22 @@ class Model(tf.keras.Model):
     def predict(self, x):
         return self.call(x, x)["x_hat"]
 
+    def get_batch_encodings(self, x):
+        if not isinstance(x, tf.data.Dataset):
+            if isinstance(x, np.ndarray):
+                x = data.utils.convert_np_to_tf(x, 32)
+            else:
+                raise ValueError(f"Dataset of type {type(x)} not supported.")
+        out_data = np.zeros((1, 2))
+        for i, batch in enumerate(x):
+            encoding = self.encode(batch)
+            out_data = np.concatenate((out_data, encoding))
+        return out_data[1:]
+
+    @trace_graph
+    def encode(self, x):
+        return self.encoder(x)
+
     @property
     def weights(self):
         return [self.encoder.get_weights(), self.decoder.get_weights()]

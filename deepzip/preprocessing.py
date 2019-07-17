@@ -1,4 +1,5 @@
 import functools
+import math
 
 import numpy as np
 import tensorflow as tf
@@ -15,7 +16,7 @@ def random_mask(destruction_coeff, seed=None):
 
     def _random_mask(input_batch):
         total_size = tf.size(input_batch).numpy()
-        num_set_zero = int(total_size * destruction_coeff)
+        num_set_zero = math.floor(total_size * destruction_coeff)
         mask = np.ones(total_size, dtype=np.float32)
         mask[:num_set_zero] = 0.0
         tf.random.shuffle(mask)
