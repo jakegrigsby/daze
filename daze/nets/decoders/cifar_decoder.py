@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-class Decoder_32x32(tf.keras.models.Model):
+class CifarDecoder(tf.keras.models.Model):
     def __init__(self):
         super().__init__()
         self.dense1 = tf.keras.layers.Dense(256)
@@ -68,6 +68,3 @@ class Decoder_32x32(tf.keras.models.Model):
 
         x = self.reconstruction(x)
         return x
-
-
-DecoderCifar10 = Decoder_32x32

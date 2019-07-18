@@ -1,2 +1,2 @@
-from .encoder_32x32 import *
+from .conv_encoder import ConvolutionalEncoder
 from .easy_encoder import EasyEncoder

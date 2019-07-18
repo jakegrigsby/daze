@@ -58,11 +58,14 @@ class Model(tf.keras.Model):
                 x = data.utils.convert_np_to_tf(x, 32)
             else:
                 raise ValueError(f"Dataset of type {type(x)} not supported.")
-        out_data = np.zeros((1, 2))
-        for i, batch in enumerate(x):
+        out_data = None
+        for batch in x:
             encoding = self.encode(batch)
-            out_data = np.concatenate((out_data, encoding))
-        return out_data[1:]
+            if isinstance(out_data, tf.Tensor):
+                out_data = tf.concat((out_data, encoding), axis=0)
+            else:
+                out_data = encoding
+        return out_data
 
     @trace_graph
     def encode(self, x):
@@ -144,15 +147,12 @@ class Model(tf.keras.Model):
         train_loss = tf.keras.metrics.Mean("train_loss", dtype=tf.float32)
         val_loss = tf.keras.metrics.Mean("val_loss", dtype=tf.float32)
 
-        batch_count = None
+        batch_count = 0
+        for x in train_dataset:
+            batch_count += 1
+
         for epoch in range(epochs):
-            if verbosity > 1:
-                if batch_count:
-                    progbar = tf.keras.utils.Progbar(batch_count)
-                else:
-                    print(
-                        "Beginning Training. Progress bar will appear after first epoch."
-                    )
+            if verbosity > 1: progbar = tf.keras.utils.Progbar(batch_count)
             start_time = time.time()
             for (batch, (original_x)) in enumerate(train_dataset):
                 processed_x = self.preprocess_input(original_x)
@@ -161,7 +161,6 @@ class Model(tf.keras.Model):
                 self.apply_gradients(optimizer, gradients, self.trainable_variables)
                 if verbosity > 1 and batch_count:
                     progbar.update(batch + 1)
-            batch_count = batch
             end_time = time.time()
 
             for original_x in val_dataset:

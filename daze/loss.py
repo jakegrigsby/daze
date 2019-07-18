@@ -85,7 +85,7 @@ def latent_l1(gamma):
     @trace_graph
     def _latent_l1(**forward_pass):
         h = forward_pass["h"]
-        return gamma * tf.norm(h, ord=1)
+        return gamma * tf.math.reduce_sum(tf.math.abs(h))
 
     return _latent_l1
 
@@ -94,12 +94,12 @@ def sparsity(rho, beta):
     """
     rho is the target sparsity value (~.01), beta is the coefficient for this term.
     """
+    rho = tf.constant(rho)
 
     @trace_graph
     def _sparsity(**forward_pass):
         h = forward_pass["h"]
         rho_hat = tf.reduce_mean(h, axis=0)
-        kl = kl_divergence(rho, rho_hat)
-        return beta * tf.math.reduce_mean(kl)
+        return beta * tf.keras.losses.kld(rho, rho_hat)
 
     return _sparsity

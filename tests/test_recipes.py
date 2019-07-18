@@ -3,8 +3,8 @@ import pytest
 import tensorflow as tf
 
 import daze as dz
-from daze.nets.encoders import Encoder_32x32
-from daze.nets.decoders import Decoder_32x32
+from daze.nets.encoders import ConvolutionalEncoder
+from daze.nets.decoders import CifarDecoder
 from daze.callbacks import checkpoints, tensorboard
 from daze.preprocessing import basic_image_normalize
 
@@ -21,7 +21,7 @@ callbacks = [checkpoints(1), tensorboard()]
 
 
 def test_default():
-    model = dz.Model(Encoder_32x32(), Decoder_32x32())
+    model = dz.Model(ConvolutionalEncoder(), CifarDecoder())
     model.train(
         x_train,
         x_val,
@@ -33,7 +33,7 @@ def test_default():
 
 
 def test_vae():
-    model = dz.recipes.VariationalAutoEncoder(Encoder_32x32(), Decoder_32x32())
+    model = dz.recipes.VariationalAutoEncoder(ConvolutionalEncoder(), CifarDecoder())
     model.train(
         x_train,
         x_val,
@@ -45,7 +45,7 @@ def test_vae():
 
 
 def test_denoising():
-    model = dz.recipes.DenoisingAutoEncoder(Encoder_32x32(), Decoder_32x32(), gamma=0.1)
+    model = dz.recipes.DenoisingAutoEncoder(ConvolutionalEncoder(), CifarDecoder(), gamma=0.1)
     model.train(
         x_train,
         x_val,
@@ -58,7 +58,7 @@ def test_denoising():
 
 def test_klsparse():
     model = dz.recipes.KlSparseAutoEncoder(
-        Encoder_32x32(), Decoder_32x32(), rho=0.01, beta=0.1
+        ConvolutionalEncoder(), CifarDecoder(), rho=0.01, beta=0.1
     )
     model.train(
         x_train,
@@ -71,7 +71,7 @@ def test_klsparse():
 
 
 def test_l1sparse():
-    model = dz.recipes.L1SparseAutoEncoder(Encoder_32x32(), Decoder_32x32(), gamma=0.1)
+    model = dz.recipes.L1SparseAutoEncoder(ConvolutionalEncoder(), CifarDecoder(), gamma=0.1)
     model.train(
         x_train,
         x_val,
@@ -86,11 +86,11 @@ def test_contractive():
     if dz.tracing.TRACE_GRAPHS:
         with pytest.raises(ValueError):
             model = dz.recipes.ContractiveAutoEncoder(
-                Encoder_32x32(), Decoder_32x32(), gamma=0.1
+                ConvolutionalEncoder(), CifarDecoder(), gamma=0.1
             )
     else:
         model = dz.recipes.ContractiveAutoEncoder(
-            Encoder_32x32(), Decoder_32x32(), gamma=0.1
+            ConvolutionalEncoder(), CifarDecoder(), gamma=0.1
         )
         model.train(
             x_train,
@@ -104,7 +104,7 @@ def test_contractive():
 
 def test_beta_vae():
     model = dz.recipes.BetaVariationalAutoEncoder(
-        Encoder_32x32(), Decoder_32x32(), beta=1.1
+        ConvolutionalEncoder(), CifarDecoder(), beta=1.1
     )
     model.train(
         x_train,
