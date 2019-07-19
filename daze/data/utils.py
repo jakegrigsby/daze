@@ -55,3 +55,30 @@ def convert_np_to_tf(np_dataset, batch_size, return_batch_count=False):
         batch_count = math.ceil(dataset_size / batch_size)
         return dataset, batch_count
     return dataset
+
+def load_from_file(filepath):
+    return np.loadtxt(filepath)
+
+def random_shuffle(*arrays):
+    permutation = np.random.permutation(arrays[0].shape[0])
+    shuffled = []
+    for array in arrays:
+        shuffled.append(array[permutation])
+    return tuple(shuffled)
+
+def get_sample_count(*arrays):
+    if all(array.shape[0] == arrays[0].shape[0] for array in arrays):
+        sample_count = arrays[0].shape[0]
+    else:
+        sample_count = None
+    return sample_count
+
+def train_val_split(*arrays, split_val=.3):
+    sample_count = get_sample_count(*arrays)
+    if not sample_count:
+        raise Exception("Batch Axis inconsistent. All input arrays must have first axis of equal length.")
+    arrays = random_shuffle(*arrays)
+    split_idx = math.floor(sample_count * split_val)
+    train_set = [array[split_idx:] for array in arrays]
+    val_set = [array[:split_idx] for array in arrays]
+    return train_set, val_set

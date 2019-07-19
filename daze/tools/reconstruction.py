@@ -7,6 +7,7 @@ import daze as dz
 from daze.nets.encoders import ConvolutionalEncoder
 from daze.nets.decoders import CifarDecoder, MnistDecoder
 
+
 def reshape_for_prediction(img):
     if not img.shape[0] == 1:
         # insert batch dimension
@@ -15,6 +16,7 @@ def reshape_for_prediction(img):
         # insert channel dimension
         img = np.expand_dims(img, -1)
     return img
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
