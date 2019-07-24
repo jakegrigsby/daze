@@ -6,21 +6,43 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def checkpoints(interval=1):
-    def _checkpoints(model, **info_dict):
-        if not info_dict["type"] == "epoch": return
+class EpochCallback:
+    def time_to_run(self, model, **info_dict):
+        time_to_run = False
+        if info_dict["type"] == "epoch":
+            time_to_run = True
+        return time_to_run
+
+
+class BatchCallback:
+    def time_to_run(self, model, **info_dict):
+        time_to_run = False
+        if info_dict["type"] == "batch":
+            time_to_run = True
+        return time_to_run
+
+
+class Checkpoints(EpochCallback):
+    def __init__(self, interval=1):
+        self.interval = interval
+
+    def __call__(self, model, **info_dict):
+        if not self.time_to_run(model, **info_dict):
+            return
         current_epoch = info_dict["current_epoch"]
-        if current_epoch % interval == 0:
+        if current_epoch % self.interval == 0:
             model.save_weights(
                 os.path.join(info_dict["checkpoint_dir"], f"epoch{current_epoch}")
             )
 
-    return _checkpoints
+
+checkpoints = Checkpoints
 
 
-def tensorboard_loss_scalars():
-    def _tensorboard_loss_scalars(model, **info_dict):
-        if not info_dict["type"] == "epoch": return
+class TensorboardLossScalars(EpochCallback):
+    def __call__(self, model, **info_dict):
+        if not self.time_to_run(model, **info_dict):
+            return
         log_writer = tf.summary.create_file_writer(info_dict["log_dir"])
         train_loss = info_dict["train_loss"]
         val_loss = info_dict["val_loss"]
@@ -28,14 +50,20 @@ def tensorboard_loss_scalars():
         with log_writer.as_default():
             tf.summary.scalar("train_loss", train_loss.result(), step=epoch)
             tf.summary.scalar("val_loss", val_loss.result(), step=epoch)
-    
-    return _tensorboard_loss_scalars
 
-def tensorboard_grad_histograms(freq=1):
-    def _tensorboard_grad_histograms(model, **info_dict):
-        if not info_dict["type"] == "batch": return
+
+tensorboard_loss_scalars = TensorboardLossScalars
+
+
+class TensorboardGradientHistograms(BatchCallback):
+    def __init__(self, frequency=1):
+        self.frequency = frequency
+
+    def __call__(self, model, **info_dict):
+        if not self.time_to_run(model, **info_dict):
+            return
         current_step = info_dict["current_step"]
-        if not current_step % freq == 0:
+        if not current_step % self.frequency == 0:
             return
         gradients = info_dict["gradients"]
         log_writer = tf.summary.create_file_writer(info_dict["log_dir"])
@@ -43,41 +71,52 @@ def tensorboard_grad_histograms(freq=1):
             for idx, grad in enumerate(gradients):
                 tf.summary.histogram(f"grad_{idx}", grad, step=current_step)
 
-    return _tensorboard_grad_histograms
+
+tensorboard_gradient_histograms = TensorboardGradientHistograms
+
 
 def _plot_to_image(figure):
     buf = io.BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig(buf, format="png")
     plt.close(figure)
     buf.seek(0)
     image = tf.image.decode_png(buf.getvalue(), channels=4)
     image = tf.expand_dims(image, 0)
     return image
 
+
 def _adjust_for_imshow(img):
     if img.shape[-1] == 1:
         img = np.squeeze(img, -1)
     return img
 
+
 def _reconstruction_acc_figure(true, pred):
-    fig = plt.figure(figsize=(20,20))
+    fig = plt.figure(figsize=(20, 20))
     rows = true.shape[0]
     columns = 2
     f, axarr = plt.subplots(rows, columns)
     for row in range(rows):
         img = _adjust_for_imshow(true[row, ...])
         axarr[row, 0].imshow(img)
-        reconstruction = _adjust_for_imshow(pred[row,...])
+        reconstruction = _adjust_for_imshow(pred[row, ...])
         axarr[row, 1].imshow(reconstruction)
     return fig
 
-def tensorboard_image_reconstruction(examples):
-    def _tensorboard_image_reconstruction(model, **info_dict):
-        if not info_dict["type"] == "epoch": return
-        pred = model.predict(examples)
-        fig_img = _plot_to_image(_reconstruction_acc_figure(examples, pred))
+
+class TensorboardImageReconstruction(EpochCallback):
+    def __init__(self, examples):
+        self.examples = examples
+
+    def __call__(self, model, **info_dict):
+        if not self.time_to_run(model, **info_dict):
+            return
+        pred = model.predict(self.examples)
+        fig_img = _plot_to_image(_reconstruction_acc_figure(self.examples, pred))
         log_writer = tf.summary.create_file_writer(info_dict["log_dir"])
         current_epoch = info_dict["current_epoch"]
         with log_writer.as_default():
-            tf.summary.image('Reconstruction', fig_img, step=current_epoch)
-    return _tensorboard_image_reconstruction
+            tf.summary.image("Reconstruction", fig_img, step=current_epoch)
+
+
+tensorboard_image_reconstruction = TensorboardImageReconstruction

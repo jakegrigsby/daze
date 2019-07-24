@@ -15,7 +15,7 @@ def train_encoder(
     x_train, x_val = dataset
     callbacks = [checkpoints(1), 
                  tensorboard_loss_scalars(), 
-                 tensorboard_grad_histograms(2),
+                 tensorboard_gradient_histograms(2),
                  tensorboard_image_reconstruction(x_train[:5,...])
                 ]
     x_train = dz.data.utils.convert_np_to_tf(x_train, 32)
