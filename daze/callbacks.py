@@ -9,15 +9,23 @@ import daze as dz
 
 
 class EpochCallback:
-    def time_to_run(self, model, **info_dict):
+    def time_to_run(self, **info_dict):
         time_to_run = False
         if info_dict["type"] == "epoch":
             time_to_run = True
         return time_to_run
 
+class SingleUseCallback:
+    been_called = True
+    def time_to_run(self, **info_dict):
+        if self.been_called:
+            self.been_called = False
+            return True
+        return False
+
 
 class BatchCallback:
-    def time_to_run(self, model, **info_dict):
+    def time_to_run(self, **info_dict):
         time_to_run = False
         if info_dict["type"] == "batch":
             time_to_run = True
@@ -29,7 +37,7 @@ class Checkpoints(EpochCallback):
         self.interval = interval
 
     def __call__(self, model, **info_dict):
-        if not self.time_to_run(model, **info_dict):
+        if not self.time_to_run(**info_dict):
             return
         current_epoch = info_dict["current_epoch"]
         if current_epoch % self.interval == 0:
@@ -43,7 +51,7 @@ checkpoints = Checkpoints
 
 class TensorboardLossScalars(EpochCallback):
     def __call__(self, model, **info_dict):
-        if not self.time_to_run(model, **info_dict):
+        if not self.time_to_run(**info_dict):
             return
         log_writer = tf.summary.create_file_writer(info_dict["log_dir"])
         train_loss = info_dict["train_loss"]
@@ -62,7 +70,7 @@ class TensorboardGradientHistograms(BatchCallback):
         self.frequency = frequency
 
     def __call__(self, model, **info_dict):
-        if not self.time_to_run(model, **info_dict):
+        if not self.time_to_run(**info_dict):
             return
         current_step = info_dict["current_step"]
         if not current_step % self.frequency == 0:
@@ -111,7 +119,7 @@ class TensorboardImageReconstruction(EpochCallback):
         self.examples = examples
 
     def __call__(self, model, **info_dict):
-        if not self.time_to_run(model, **info_dict):
+        if not self.time_to_run(**info_dict):
             return
         plt.clf()
         pred = model.predict(self.examples)
@@ -131,7 +139,7 @@ class TensorboardLatentSpacePlot(EpochCallback):
         self.compatible = True
     
     def __call__(self, model, **info_dict):
-        if not self.compatible or not self.time_to_run(model, **info_dict): return
+        if not self.compatible or not self.time_to_run(**info_dict): return
         plt.clf()
         encodings = model.get_batch_encodings(self.examples)
         fig = None
@@ -145,6 +153,7 @@ class TensorboardLatentSpacePlot(EpochCallback):
             print("Warning: the TensorboardLatentSpacePlot callback has no effect "
                   f"with latent space size > 3. Detected latent space of size {encodings.shape[-1]}")
             self.compatible = False
+            return
         img = _plot_to_image(fig)
         log_writer = tf.summary.create_file_writer(info_dict["log_dir"])
         current_step = info_dict["current_epoch"]
@@ -152,5 +161,26 @@ class TensorboardLatentSpacePlot(EpochCallback):
             tf.summary.image('Latent Space', img, step=current_step)
 
 tensorboard_latent_space_plot = TensorboardLatentSpacePlot
+
+class TensorboardTraceGraph(SingleUseCallback):
+    def __init__(self, function, *inputs, graph=True, profiler=True):
+        self.func = function
+        self.inputs = inputs
+        self.graph = graph
+        self.profiler = profiler
+    
+    def __call__(self, model, **info_dict):
+        if not self.time_to_run(**info_dict): return
+        log_writer = tf.summary.create_file_writer(info_dict["log_dir"])
+        tf.summary.trace_on(graph=self.graph, profiler=self.profiler)
+        self.func(*self.inputs)
+        with log_writer.as_default():
+            tf.summary.trace_export(
+                name=f"Graph of {self.func.__name__}",
+                step=0,
+                profiler_outdir=info_dict["log_dir"]
+            )
+
+tensorboard_trace_graph = TensorboardTraceGraph
 
 
