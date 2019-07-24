@@ -5,6 +5,8 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
 
+import daze as dz
+
 
 class EpochCallback:
     def time_to_run(self, model, **info_dict):
@@ -111,12 +113,44 @@ class TensorboardImageReconstruction(EpochCallback):
     def __call__(self, model, **info_dict):
         if not self.time_to_run(model, **info_dict):
             return
+        plt.clf()
         pred = model.predict(self.examples)
-        fig_img = _plot_to_image(_reconstruction_acc_figure(self.examples, pred))
+        fig = _reconstruction_acc_figure(self.examples, pred)
+        img = _plot_to_image(fig)
         log_writer = tf.summary.create_file_writer(info_dict["log_dir"])
         current_epoch = info_dict["current_epoch"]
         with log_writer.as_default():
-            tf.summary.image("Reconstruction", fig_img, step=current_epoch)
+            tf.summary.image("Reconstruction", img, step=current_epoch)
 
 
 tensorboard_image_reconstruction = TensorboardImageReconstruction
+
+class TensorboardLatentSpacePlot(EpochCallback):
+    def __init__(self, examples):
+        self.examples = examples
+        self.compatible = True
+    
+    def __call__(self, model, **info_dict):
+        if not self.compatible or not self.time_to_run(model, **info_dict): return
+        plt.clf()
+        encodings = model.get_batch_encodings(self.examples)
+        fig = None
+        if encodings.shape[-1] == 3:
+            fig = dz.tools.plot.plot3d(encodings)
+        elif encodings.shape[-1] == 2:
+            fig = dz.tools.plot.plot2d(encodings)
+        elif encodings.shape[-1] == 1:
+            fig = dz.tools.plot.plot1d(encodings)
+        else:
+            print("Warning: the TensorboardLatentSpacePlot callback has no effect "
+                  f"with latent space size > 3. Detected latent space of size {encodings.shape[-1]}")
+            self.compatible = False
+        img = _plot_to_image(fig)
+        log_writer = tf.summary.create_file_writer(info_dict["log_dir"])
+        current_step = info_dict["current_epoch"]
+        with log_writer.as_default():
+            tf.summary.image('Latent Space', img, step=current_step)
+
+tensorboard_latent_space_plot = TensorboardLatentSpacePlot
+
+

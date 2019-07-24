@@ -31,7 +31,6 @@ def attempt_switch_from_macosx():
             return True
     return False
 
-
 def main():
     attempt_switch_from_macosx()
 
@@ -62,6 +61,7 @@ def plot3d(data):
     fig = plt.figure()
     ax = fig.gca(projection="3d")
     ax.scatter(*np.split(data, 3, axis=-1))
+    return fig
 
 
 def plot2d(data):
