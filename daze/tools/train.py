@@ -6,14 +6,20 @@ import tensorflow as tf
 import daze as dz
 from daze.nets.encoders import *
 from daze.nets.decoders import *
-from daze.callbacks import checkpoints, tensorboard
+from daze.callbacks import *
 
 
 def train_encoder(
     model_type, encoder, decoder, dataset, latent_size, epochs, save_path
 ):
     x_train, x_val = dataset
-    callbacks = [checkpoints(1), tensorboard()]
+    callbacks = [checkpoints(1), 
+                 tensorboard_loss_scalars(), 
+                 tensorboard_grad_histograms(2),
+                 tensorboard_image_reconstruction(x_train[:5,...])
+                ]
+    x_train = dz.data.utils.convert_np_to_tf(x_train, 32)
+    x_val = dz.data.utils.convert_np_to_tf(x_val, 32)
 
     # Select algorithm type
     if model_type == "default":
@@ -97,6 +103,7 @@ def main():
         "-type", default="default", type=str, help="model type, like vae or default"
     )
     parser.add_argument("-dataset", default="cifar", type=str)
+    parser.add_argument("-limit_samples", type=int)
     parser.add_argument("-epochs", default=10, type=int)
     parser.add_argument("-latent_size", default=32, type=int)
     parser.add_argument("-save_path", type=str)
@@ -130,6 +137,10 @@ def main():
             f"Dataset not recognized: {dataset_type}. Options are 'cifar', 'mnist' or a filepath to a csv."
         )
 
+    if args.limit_samples:
+        x_train = x_train[:args.limit_samples]
+        x_val = x_val[:args.limit_samples]
+
     # override default encoder, decoder
     if args.encoder:
         try:
@@ -147,8 +158,6 @@ def main():
         else:
             decoder = decoder()
 
-    x_train = dz.data.utils.convert_np_to_tf(x_train, 32)
-    x_val = dz.data.utils.convert_np_to_tf(x_val, 32)
     dataset = (x_train, x_val)
 
     if args.save_path:

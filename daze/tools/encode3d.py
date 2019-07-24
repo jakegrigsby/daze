@@ -15,16 +15,20 @@ if __name__ == "__main__":
 
     if args.dataset in ["cifar", "cifar10"]:
         dataset = dz.data.cifar10
+        data, _ = dataset.load(dtype="f")
+        data /= 255.0
         Decoder = CifarDecoder
     elif args.dataset in ["mnist"]:
         dataset = dz.data.mnist
+        data, _ = dataset.load(dtype="f")
+        data /= 255.0
         Decoder = MnistDecoder
+    elif os.path.exists(args.dataset):
+        data = dz.data.utils.load_from_file(args.dataset)
 
     model = dz.Model(ConvolutionalEncoder(latent_dim=3), Decoder())
     model.load_weights(args.weights)
 
-    data, _ = dataset.load(dtype="f")
-    data /= 255.0
 
     encodings = model.get_batch_encodings(data)
     np.savetxt(args.output, encodings)

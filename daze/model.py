@@ -144,6 +144,7 @@ class Model(tf.keras.Model):
         log_dir, checkpoint_dir = self.init_logging(save_path)
 
         optimizer = tf.keras.optimizers.Adam()
+
         train_loss = tf.keras.metrics.Mean("train_loss", dtype=tf.float32)
         val_loss = tf.keras.metrics.Mean("val_loss", dtype=tf.float32)
 
@@ -161,6 +162,16 @@ class Model(tf.keras.Model):
                 self.apply_gradients(optimizer, gradients, self.trainable_variables)
                 if verbosity > 1 and batch_count:
                     progbar.update(batch + 1)
+                if callbacks:
+                    batch_dict = {
+                    "type":"batch",
+                    "gradients": gradients,
+                    "current_step": (epoch*batch_count)+batch,
+                    "log_dir": log_dir,
+                    }
+                    for callback in callbacks:
+                        callback(self, **batch_dict)
+                
             end_time = time.time()
 
             for original_x in val_dataset:
@@ -171,8 +182,10 @@ class Model(tf.keras.Model):
                 print(
                     f"Epoch {epoch}, Train_Loss {train_loss.result()}, Val_Loss {val_loss.result()} Train_Time {end_time - start_time}"
                 )
-
-            train_dict = {
+            
+            if callbacks:
+                epoch_dict = {
+                "type":"epoch",
                 "current_epoch": epoch,
                 "train_loss": train_loss,
                 "val_loss": val_loss,
@@ -180,10 +193,9 @@ class Model(tf.keras.Model):
                 "epoch_end_time": end_time,
                 "checkpoint_dir": checkpoint_dir,
                 "log_dir": log_dir,
-            }
-            if callbacks:
+                }
                 for callback in callbacks:
-                    callback(self, **train_dict)
+                    callback(self, **epoch_dict)
 
             train_loss.reset_states()
             val_loss.reset_states()
