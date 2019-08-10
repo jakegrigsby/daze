@@ -18,4 +18,4 @@ daze/tools/__pycache__
 daze.egg-info
 \.coverage
 
-daze/tools/saves/
+**/saves/

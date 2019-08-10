@@ -4,6 +4,8 @@ Module for custom loss functions
 
 import numpy as np
 import tensorflow as tf
+# Currently, we still require the nightly build of tensorflow_probability
+import tensorflow_probability as tfp
 
 from .math import *
 from .tracing import trace_graph, TRACE_GRAPHS
@@ -13,16 +15,21 @@ mse = tf.keras.losses.mean_squared_error
 
 def kl(beta):
     @trace_graph
-    def _beta(**forward_pass):
-        logvar = forward_pass["logvar"]
+    def _kl(**forward_pass):
         mean = forward_pass["mean"]
-        return beta * tf.reduce_mean(
-            tf.math.reduce_sum(
-                -0.5 * (1 + logvar - tf.square(mean) - tf.math.exp(logvar))
-            )
-        )
+        sigma = forward_pass["sigma"]
+        z = forward_pass["z"]
+        q_z = tfp.distributions.MultivariateNormalDiag(loc=mean, scale_diag=sigma)
+        
+        p_z = tfp.distributions.MultivariateNormalDiag(
+          loc=[0.] * z.shape[-1], scale_diag=[1.] * z.shape[-1]
+          ) # @TODO: would it be faster to pre-store this?
+        kl_div = tfp.distributions.kl_divergence(q_z, p_z)
+        latent_loss = tf.reduce_mean(tf.maximum(kl_div, 0))
+        print('latent_loss:', latent_loss)
+        return beta * latent_loss
 
-    return _beta
+    return _kl
 
 
 def elbo():

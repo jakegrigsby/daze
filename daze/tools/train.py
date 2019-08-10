@@ -55,7 +55,11 @@ def main():
     parser = argparse.ArgumentParser()
     # parse args
     parser.add_argument(
-        "-type", default="default", type=str, help="model type, like vae or default"
+        "-type", default="default", type=str, 
+        help="model type, like vae or default"
+    )
+    parser.add_argument("-prefix", type=str, 
+        help="prefix for TensorBoard run name", 
     )
     parser.add_argument("-dataset", default="cifar", type=str)
     parser.add_argument("-limit_samples", type=int)
@@ -115,11 +119,17 @@ def main():
 
     dataset = (x_train, x_val)
 
+    
+    if args.prefix:
+        output_prefix = args.prefix + "_"
+    else:
+        output_prefix = ""
+    
     if args.save_path:
         save_path = args.save_path
     else:
-        save_path = f"saves/{args.dataset}_{args.type}"
-
+        save_path = f"saves/{output_prefix}{args.dataset}_{args.type}"
+    
     train_encoder(model_type, encoder, decoder, dataset, latent_size, epochs, save_path)
 
 

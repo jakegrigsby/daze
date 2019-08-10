@@ -1,5 +1,8 @@
 imageio
+matplotlib
 numpy
 opencv-python
 pytest
 tensorflow==2.0.0-beta0
+tensorflow_probability
+umap
