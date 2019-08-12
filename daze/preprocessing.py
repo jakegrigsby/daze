@@ -64,3 +64,8 @@ def image_vertical_flip():
     def _image_vertical_reflect(input_batch):
         return np.flip(input_batch, axis=-3)
     return _image_vertical_reflect
+
+def easy_imgaug(imgaug_Augmenter):
+    def _easy_imgaug(input_batch):
+        return imgaug_Augmenter.augment_images(input_batch)
+    return easy_imgaug

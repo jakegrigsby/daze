@@ -58,3 +58,15 @@ def test_vertical_flip():
     flipped_img = f(img)
     assert img[:, 0, 0, :].all() == flipped_img[:,-1,0,:].all()
 
+def test_easy_imgaug():
+    import imgaug.augmenters as iaa
+    img_shape = (5, 15, 15, 3)
+    imgs = np.random.randint(0, 255, img_shape)
+    augmenter = iaa.Sequential([
+        iaa.Crop(px=(0, 16)),
+        iaa.Fliplr(0.5),
+        iaa.GaussianBlur(sigma=(0, 3.0)),
+    ])
+    f = easy_imgaug(augmenter)
+    f(imgs)
+
