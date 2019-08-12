@@ -1,8 +1,10 @@
 import functools
 import math
+import random
 
 import numpy as np
 import tensorflow as tf
+from scipy.ndimage import rotate
 
 
 def random_mask(destruction_coeff, seed=None):
@@ -43,3 +45,22 @@ def basic_image_normalize():
         return input_batch / 255.0
 
     return _basic_image_normalize
+
+def image_rotation(min_angle, max_angle, fill_mode='nearest'):
+    min_angle = int(min_angle)
+    max_angle = int(max_angle)
+    assert min_angle <= max_angle
+    def _image_rotation(input_batch):
+        angle = random.randint(min_angle, max_angle)
+        return rotate(input_batch, angle, axes=(-3, -2), mode=fill_mode)
+    return _image_rotation
+
+def image_horizontal_flip():
+    def _image_horizontal_reflect(input_batch):
+        return np.flip(input_batch, axis=-2)
+    return _image_horizontal_reflect
+
+def image_vertical_flip():
+    def _image_vertical_reflect(input_batch):
+        return np.flip(input_batch, axis=-3)
+    return _image_vertical_reflect
