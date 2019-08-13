@@ -10,7 +10,7 @@ from daze.callbacks import *
 
 
 def train_encoder(
-    model_type, encoder, decoder, dataset, latent_size, epochs, save_path
+    model_type, encoder, decoder, dataset, latent_dim, epochs, save_path
 ):
     x_train, x_val = dataset
     callbacks = [checkpoints(1), 
@@ -64,7 +64,7 @@ def main():
     parser.add_argument("-dataset", default="cifar", type=str)
     parser.add_argument("-limit_samples", type=int)
     parser.add_argument("-epochs", default=10, type=int)
-    parser.add_argument("-latent_size", default=32, type=int)
+    parser.add_argument("-latent_dim", default=32, type=int)
     parser.add_argument("-save_path", type=str)
     parser.add_argument("-encoder", default="ConvolutionalEncoder")
     parser.add_argument("-decoder")
@@ -72,10 +72,10 @@ def main():
     model_type = args.type
     dataset_type = args.dataset
     epochs = args.epochs
-    latent_size = args.latent_size
+    latent_dim = args.latent_dim
 
     # Use dataset to infer encoder, decoder
-    encoder = ConvolutionalEncoder(latent_dim=latent_size)
+    encoder = ConvolutionalEncoder(latent_dim=latent_dim)
     if dataset_type in ["cifar", "cifar10"]:
         x_train, x_val = dz.data.cifar10.load(dtype="f")
         x_train /= 255
@@ -107,7 +107,7 @@ def main():
         except:
             raise ValueError(f"Encoder type not found: {args.encoder}")
         else:
-            encoder = encoder(latent_dim=latent_size)
+            encoder = encoder(latent_dim=latent_dim)
 
     if args.decoder:
         try:
@@ -130,7 +130,7 @@ def main():
     else:
         save_path = f"saves/{output_prefix}{args.dataset}_{args.type}"
     
-    train_encoder(model_type, encoder, decoder, dataset, latent_size, epochs, save_path)
+    train_encoder(model_type, encoder, decoder, dataset, latent_dim, epochs, save_path)
 
 
 if __name__ == "__main__":
