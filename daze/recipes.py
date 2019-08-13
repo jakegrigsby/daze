@@ -38,7 +38,6 @@ def BetaVariationalAutoEncoder(encoder, decoder, beta, preprocessing_steps=[]):
         loss_funcs=loss_funcs,
     )
 
-
 def KlSparseAutoEncoder(encoder, decoder, rho, beta, preprocessing_steps=[]):
     loss_funcs = [loss.reconstruction(), loss.sparsity(rho, beta)]
     return Model(

@@ -1,6 +1,3 @@
-"""
-Module for custom loss functions
-"""
 
 import numpy as np
 import tensorflow as tf
@@ -159,5 +156,7 @@ def maximum_mean_discrepancy():
         z_kernel = compute_kernel(z, z)
         xz_kernel = compute_kernel(x, z)
         return tf.reduce_mean(x_kernel) + tf.reduce_mean(z_kernel) - 2 * tf.reduce_mean(xz_kernel)
+    
+    return _maximum_mean_discrepancy
 
        
