@@ -14,6 +14,12 @@ mse = tf.keras.losses.mean_squared_error
 
 
 def kl(beta):
+    """KL Divergence Loss Term
+
+    Args:
+        beta (float) : coefficient for this terms' contribution to overall
+            loss function.
+    """
     @trace_graph
     def _kl(**forward_pass):
         mean = forward_pass["mean"]
@@ -33,8 +39,8 @@ def kl(beta):
 
 
 def elbo():
-    """Evidence Lower Bound"""
-
+    """Evidence Lower Bound
+    """
     @trace_graph
     def _elbo(**forward_pass):
         x_hat = forward_pass["x_hat"]
@@ -50,6 +56,16 @@ def elbo():
 
 
 def contractive(coeff):
+    """Contractive Loss Term
+
+    Note:
+        This loss function can't be compiled (for now) because of the way it calculates
+        gradients as part of the inner loop.
+
+    Args:
+        coeff (float) : coefficient for this terms' contribution to the overall
+            loss function.
+    """
     # this can't be compiled into a tf.function because of its gradient calculation
     if TRACE_GRAPHS:
         raise ValueError(
@@ -69,6 +85,9 @@ def contractive(coeff):
 
 
 def denoising_reconstruction():
+    """Mean Squared Error between reconstruction and the original x (before
+        preprocessing).
+    """
     @trace_graph
     def _denoising(**forward_pass):
         original_x = forward_pass["original_x"]
@@ -79,6 +98,8 @@ def denoising_reconstruction():
 
 
 def reconstruction():
+    """Mean Squared Error between the reconstruction and true (preprocessed) input.
+    """
     @trace_graph
     def _reconstruction(**forward_pass):
         x = forward_pass["x"]
@@ -89,6 +110,12 @@ def reconstruction():
 
 
 def latent_l1(gamma):
+    """Loss term based on the L1 distance of the latent space.
+
+    Args:
+        gamma (float) : coefficient for this terms' contribution to the overall
+            loss function.
+    """
     @trace_graph
     def _latent_l1(**forward_pass):
         h = forward_pass["h"]
@@ -98,8 +125,11 @@ def latent_l1(gamma):
 
 
 def sparsity(rho, beta):
-    """
-    rho is the target sparsity value (~.01), beta is the coefficient for this term.
+    """Sparsity loss term.
+
+    Args:
+        rho (float) : the target sparsity value (~.01)
+        beta (float) : coefficient for this terms' contribution to the overall loss function.
     """
     rho = tf.constant(rho)
 
