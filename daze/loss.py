@@ -1,6 +1,3 @@
-"""
-Module for custom loss functions
-"""
 
 import numpy as np
 import tensorflow as tf
@@ -14,6 +11,12 @@ mse = tf.keras.losses.mean_squared_error
 
 
 def kl(beta):
+    """KL Divergence Loss Term
+
+    Args:
+        beta (float) : coefficient for this terms' contribution to overall
+            loss function.
+    """
     @trace_graph
     def _kl(**forward_pass):
         mean = forward_pass["mean"]
@@ -34,6 +37,16 @@ def kl(beta):
 
 
 def contractive(coeff):
+    """Contractive Loss Term
+
+    Note:
+        This loss function can't be compiled (for now) because of the way it calculates
+        gradients as part of the inner loop.
+
+    Args:
+        coeff (float) : coefficient for this terms' contribution to the overall
+            loss function.
+    """
     # this can't be compiled into a tf.function because of its gradient calculation
     if TRACE_GRAPHS:
         raise ValueError(
@@ -53,6 +66,9 @@ def contractive(coeff):
 
 
 def denoising_reconstruction():
+    """Mean Squared Error between reconstruction and the original x (before
+        preprocessing).
+    """
     @trace_graph
     def _denoising(**forward_pass):
         original_x = forward_pass["original_x"]
@@ -63,6 +79,8 @@ def denoising_reconstruction():
 
 
 def reconstruction():
+    """Mean Squared Error between the reconstruction and true (preprocessed) input.
+    """
     @trace_graph
     def _reconstruction(**forward_pass):
         x = forward_pass["x"]
@@ -73,6 +91,12 @@ def reconstruction():
 
 
 def latent_l1(gamma):
+    """Loss term based on the L1 distance of the latent space.
+
+    Args:
+        gamma (float) : coefficient for this terms' contribution to the overall
+            loss function.
+    """
     @trace_graph
     def _latent_l1(**forward_pass):
         h = forward_pass["h"]
@@ -82,8 +106,11 @@ def latent_l1(gamma):
 
 
 def sparsity(rho, beta):
-    """
-    rho is the target sparsity value (~.01), beta is the coefficient for this term.
+    """Sparsity loss term.
+
+    Args:
+        rho (float) : the target sparsity value (~.01)
+        beta (float) : coefficient for this terms' contribution to the overall loss function.
     """
     rho = tf.constant(rho)
 
@@ -94,3 +121,28 @@ def sparsity(rho, beta):
         return beta * tf.keras.losses.kld(rho, rho_hat)
 
     return _sparsity
+
+def maximum_mean_discrepancy():
+    """Maximum Mean Discrepancy
+
+    Paper: https://arxiv.org/pdf/1706.02262.pdf
+    """
+    def compute_kernel(x, y):
+        x_size = tf.shape(x)[0]
+        y_size = tf.shape(y)[0]
+        dim = tf.shape(x)[1]
+        tiled_x = tf.tile(tf.reshape(x, tf.stack([x_size, 1, dim])), tf.stack([1, y_size, 1]))
+        tiled_y = tf.tile(tf.reshape(y, tf.stack([1, y_size, dim])), tf.stack([x_size, 1, 1]))
+        return tf.exp(-tf.reduce_mean(tf.square(tiled_x - tiled_y), axis=2) / tf.cast(dim, tf.float32))
+
+    def _maximum_mean_discrepancy(**forward_pass):
+        x = forward_pass["x"]
+        z = forward_pass["z"]
+        x_kernel = compute_kernel(x, x)
+        z_kernel = compute_kernel(z, z)
+        xz_kernel = compute_kernel(x, z)
+        return tf.reduce_mean(x_kernel) + tf.reduce_mean(z_kernel) - 2 * tf.reduce_mean(xz_kernel)
+    
+    return _maximum_mean_discrepancy
+
+       

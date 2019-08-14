@@ -19,3 +19,5 @@ daze.egg-info
 \.coverage
 
 **/saves/
+
+docs/build/

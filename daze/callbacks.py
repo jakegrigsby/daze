@@ -9,6 +9,8 @@ import daze as dz
 
 
 class EpochCallback:
+    """Callback base class that runs only at the end of each epoch
+    """
     def time_to_run(self, **info_dict):
         time_to_run = False
         if info_dict["type"] == "epoch":
@@ -16,6 +18,8 @@ class EpochCallback:
         return time_to_run
 
 class SingleUseCallback:
+    """Callback base class that runs only once - at the end of the first training step.
+    """
     been_called = True
     def time_to_run(self, **info_dict):
         if self.been_called:
@@ -25,6 +29,8 @@ class SingleUseCallback:
 
 
 class BatchCallback:
+    """Callback base class that runs at the end of each training batch.
+    """
     def time_to_run(self, **info_dict):
         time_to_run = False
         if info_dict["type"] == "batch":
@@ -33,7 +39,13 @@ class BatchCallback:
 
 
 class Checkpoints(EpochCallback):
+    """Periodically save model parameters to disk.
+    """
     def __init__(self, interval=1):
+        """
+        Args:
+            interval (int) : How many epochs to train between each save.
+        """
         self.interval = interval
 
     def __call__(self, model, **info_dict):
@@ -50,6 +62,8 @@ checkpoints = Checkpoints
 
 
 class TensorboardLossScalars(EpochCallback):
+    """Plot training and validation loss to tensorboard.
+    """
     def __call__(self, model, **info_dict):
         if not self.time_to_run(**info_dict):
             return
@@ -66,7 +80,13 @@ tensorboard_loss_scalars = TensorboardLossScalars
 
 
 class TensorboardGradientHistograms(BatchCallback):
+    """Visualize gradients using tensorboard histograms.
+    """
     def __init__(self, frequency=1):
+        """
+        Args:
+            frequency (int) : how many batches to train between histogram entries. 1 is every batch.
+        """
         self.frequency = frequency
 
     def __call__(self, model, **info_dict):
@@ -115,7 +135,14 @@ def _reconstruction_acc_figure(true, pred):
 
 
 class TensorboardImageReconstruction(EpochCallback):
+    """See the Decoder's image reconstructions in tensorboard at the end of each epoch.
+    """
     def __init__(self, examples):
+        """
+        Args:
+            examples (np.ndarray) : Image-like (samples, height, width, channels) numpy array
+                to reconstruct and save to logs at the end of each epoch.
+        """
         self.examples = examples
 
     def __call__(self, model, **info_dict):
@@ -134,7 +161,13 @@ class TensorboardImageReconstruction(EpochCallback):
 tensorboard_image_reconstruction = TensorboardImageReconstruction
 
 class TensorboardLatentSpacePlot(EpochCallback):
+    """Plot 3D, 2D and 1D latent spaces. Useful for clustering and dimensionality reduction.
+    """
     def __init__(self, examples):
+        """
+        Args:
+            examples (np.ndarray) : Array of samples to encode and plot at the end of each epoch.
+        """
         self.examples = examples
         self.compatible = True
     
@@ -163,7 +196,18 @@ class TensorboardLatentSpacePlot(EpochCallback):
 tensorboard_latent_space_plot = TensorboardLatentSpacePlot
 
 class TensorboardTraceGraph(SingleUseCallback):
-    def __init__(self, function, *inputs, graph=True, profiler=True):
+    """Tensorboard graph tracing and profiling.
+    """
+    def __init__(self, function, *inputs, graph=True, profile=True):
+        """
+        Args:
+            function (FunctionType) : The python function you want tensorboard to trace.
+            *inputs : The args for the input function.
+            graph (bool) : Whether to log the computation graph of the input function.
+                Defaults to True.
+            profile (bool) : Whether to log the profiling details of the input function.
+                Defaults to True.
+        """
         self.func = function
         self.inputs = inputs
         self.graph = graph
