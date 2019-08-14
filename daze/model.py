@@ -173,7 +173,7 @@ class Model(tf.keras.Model):
                         callback(self, **batch_dict)
                 
             end_time = time.time()
-
+            
             for original_x in val_dataset:
                 loss, _ = self.compute_loss(original_x, original_x)
                 val_loss(loss)

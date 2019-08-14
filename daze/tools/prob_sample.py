@@ -1,7 +1,8 @@
-""" Samples from a probabalistic distribution and displays output images. """
+""" Samples from a probabilistic distribution and displays output images. """
 
 import argparse
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import numpy as np
 
 import daze as dz
@@ -25,42 +26,56 @@ def load_model_from_checkpoint_path(checkpoint_path, latent_dim=16):
     return model, image_size, latent_dim
 
 
-def display_sample(checkpoint_path, grid_size):
-    print('** loading model')
+def gaussian(x):
+    mu = 0
+    sig = 1
+    return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
+    
+def display_sample(checkpoint_path, num_steps, display_type='grid'):
     model, image_size, latent_dim = load_model_from_checkpoint_path(checkpoint_path)
-    print('** loaded model')
     # sample from grid
     # @TODO walk through all dimensions not just 2
-    nx = ny = grid_size
-    meshgrid = np.meshgrid(np.linspace(-3, 3, nx), np.linspace(-3, 3, ny))
-    meshgrid = np.array(meshgrid).reshape(2, nx*ny).T
-    extra_dim = np.tile(np.random.normal(size=(1,latent_dim-2)), (nx*ny,1))
-    z = np.concatenate((meshgrid, extra_dim), axis=1)
-    z = z.astype(np.float32, copy=False)
-    x_grid = model.decode(z)
-    num_channels = x_grid.shape[-1]
-    x_grid = x_grid.numpy().reshape(nx, ny, image_size, image_size, num_channels)
-    # fill canvas
-    canvas = np.zeros((nx*image_size, ny*image_size, num_channels)).squeeze()
-    for xi in range(nx):
-        for yi in range(ny):
-            if num_channels > 1:
-                canvas[xi*image_size:(xi+1)*image_size, yi*image_size:(yi+1)*image_size,:] = x_grid[xi, yi,:,:,:].squeeze()
-            else:
-                canvas[xi*image_size:(xi+1)*image_size, yi*image_size:(yi+1)*image_size] = x_grid[xi, yi,:,:,:].squeeze()
-    fig, ax = plt.subplots(figsize=(10,10))
-    ax.matshow(canvas, cmap=plt.cm.Greys)
-    ax.axis('off')
-    print('** showing plot')
+    
+    sample_points = None
+    for x_step in np.linspace(-3, 3, num=num_steps):
+        y = gaussian(x_step)
+        y_arr = np.array([y] * latent_dim, dtype='float32')
+        if sample_points is None:
+            sample_points = np.array([y_arr])
+        else:
+            sample_points = np.vstack((sample_points, y_arr))
+        
+    decoded_images = model.decode(sample_points)
+    # show gif
+    if display_type == 'gif':
+        images = []
+        fig = plt.figure()
+        for raw_image in decoded_images:
+            image = plt.imshow(np.squeeze(raw_image), animated=True)
+            images.append([image])
+        
+        print('{} images'.format(len(images)))
+        ani = animation.ArtistAnimation(fig, images, interval=50, blit=True,
+                                        repeat_delay=1000)
+    elif display_type == 'grid':
+        # show grid
+        nx=ny=int(np.sqrt(num_steps))
+        f, axarr = plt.subplots(nx,ny)
+        for _y in range(ny):
+            for _x in range(nx):
+                i = _x + (_y * nx)
+                axarr[_x,_y].imshow(np.squeeze(decoded_images[i]))
+    
+    
     plt.show()
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('checkpoint_path', type=str, help='path to saved model')
-    parser.add_argument('--grid_size', type=int,  default=10, 
-        help='size of image grid')
+    parser.add_argument('--num_steps', type=int,  default=64, 
+        help='number of steps across distribution')
     args = parser.parse_args()
-    display_sample(args.checkpoint_path, args.grid_size)
+    display_sample(args.checkpoint_path, args.num_steps)
 
 if __name__ == "__main__":
     main()

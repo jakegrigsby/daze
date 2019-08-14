@@ -8,7 +8,6 @@ from daze.nets.encoders import *
 from daze.nets.decoders import *
 from daze.callbacks import *
 
-
 def train_encoder(
     model_type, encoder, decoder, dataset, latent_dim, epochs, save_path
 ):

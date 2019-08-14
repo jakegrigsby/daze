@@ -24,7 +24,7 @@ def VariationalAutoEncoder(encoder, decoder, preprocessing_steps=[]):
         decoder,
         preprocessing_steps=preprocessing_steps,
         loss_funcs=loss_funcs,
-        forward_pass_func=forward_pass.probabalistic_encode_decode,
+        forward_pass_func=forward_pass.probabilistic_encode_decode,
     )
 
 
@@ -34,7 +34,7 @@ def BetaVariationalAutoEncoder(encoder, decoder, beta, preprocessing_steps=[]):
         encoder,
         decoder,
         preprocessing_steps=preprocessing_steps,
-        forward_pass_func=forward_pass.probabalistic_encode_decode,
+        forward_pass_func=forward_pass.probabilistic_encode_decode,
         loss_funcs=loss_funcs,
     )
 

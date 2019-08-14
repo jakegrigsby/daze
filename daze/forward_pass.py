@@ -8,11 +8,11 @@ import tensorflow_probability as tfp
 
 
 @trace_graph
-def probabalistic_encode_decode(model, original_x, x):
+def probabilistic_encode_decode(model, original_x, x):
     mean, sigma = tf.split(model.encode(x), num_or_size_splits=2, axis=1)
     q_z = tfp.distributions.MultivariateNormalDiag(loc=mean, scale_diag=sigma)
     z = q_z.sample()
-    x_hat = model.decode(z)
+    x_hat = model.decode(mean)
     return {
         "original_x": original_x,
         "x": x,

@@ -19,34 +19,18 @@ def kl(beta):
         mean = forward_pass["mean"]
         sigma = forward_pass["sigma"]
         z = forward_pass["z"]
-        q_z = tfp.distributions.MultivariateNormalDiag(loc=mean, scale_diag=sigma)
         
+        q_z = tfp.distributions.MultivariateNormalDiag(loc=mean, scale_diag=sigma)
         p_z = tfp.distributions.MultivariateNormalDiag(
-          loc=[0.] * z.shape[-1], scale_diag=[1.] * z.shape[-1]
-          ) # @TODO: would it be faster to pre-store this?
+          loc=[0.0] * z.shape[-1], scale_diag=[1.0] * z.shape[-1]
+          ) # @TODO: pre-compute this normal dist. and store
+        
         kl_div = tfp.distributions.kl_divergence(q_z, p_z)
         latent_loss = tf.reduce_mean(tf.maximum(kl_div, 0))
-        print('latent_loss:', latent_loss)
+        
         return beta * latent_loss
 
     return _kl
-
-
-def elbo():
-    """Evidence Lower Bound"""
-
-    @trace_graph
-    def _elbo(**forward_pass):
-        x_hat = forward_pass["x_hat"]
-        x = forward_pass["x"]
-        z = forward_pass["z"]
-        cross_ent = tf.nn.sigmoid_cross_entropy_with_logits(logits=x_hat, labels=x)
-        logpx_z = -tf.reduce_sum(cross_ent, axis=[1, 2, 3])
-        logpz = log_normal_pdf(z, 0.0, 0.0)
-        logqz_x = log_normal_pdf(z, mean, logvar)
-        return -tf.reduce_mean(logpx_z + logpz - logqz_x)
-
-    return _elbo
 
 
 def contractive(coeff):
