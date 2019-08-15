@@ -3,6 +3,7 @@ matplotlib
 numpy
 opencv-python
 pytest
+scipy
 tensorflow==2.0.0-beta0
 tensorflow_probability
 umap

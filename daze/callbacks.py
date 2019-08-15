@@ -198,7 +198,7 @@ tensorboard_latent_space_plot = TensorboardLatentSpacePlot
 class TensorboardTraceGraph(SingleUseCallback):
     """Tensorboard graph tracing and profiling.
     """
-    def __init__(self, function, *inputs, graph=True, profile=True):
+    def __init__(self, function, *inputs, graph=True, profiler=True):
         """
         Args:
             function (FunctionType) : The python function you want tensorboard to trace.
