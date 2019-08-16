@@ -34,6 +34,8 @@ def train_encoder(
         model = dz.recipes.BetaVariationalAutoEncoder(encoder, decoder, beta=1.1)
     elif model_type == "klsparse":
         model = dz.recipes.KlSparseAutoEncoder(encoder, decoder, rho=0.01, beta=0.1)
+    elif model_type == "info":
+        model = dz.recipes.InfoVariationalAutoEncoder(encoder, decoder)
     else:
         raise ValueError("Invalid autoencoder type {}".format(model_type))
 
