@@ -1,4 +1,6 @@
 import math
+import zipfile
+import os
 
 import numpy as np
 import tensorflow as tf
@@ -82,3 +84,16 @@ def train_val_split(*arrays, split_val=.3):
     train_set = [array[split_idx:] for array in arrays]
     val_set = [array[:split_idx] for array in arrays]
     return train_set, val_set
+
+def relative_path(root, path):
+    return os.path.abspath(
+            os.path.join(
+                os.path.dirname(root), path
+                )
+            )
+
+def unzip_if_zipped(path):
+    if zipfile.is_zipfile(path):
+        with zipfile.ZipFile(path, 'r') as zipped:
+            zipped.extractall(path=os.path.dirname(path))
+        os.remove(path)
