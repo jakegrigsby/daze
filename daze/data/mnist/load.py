@@ -9,7 +9,7 @@ def load(size=None, dtype=None, return_labels=False):
     """
     (x_train, y_train), (x_val, y_val) = tf.keras.datasets.mnist.load_data()
     size = x_train.shape[0] if not size else size
-    x_train, x_val = x_train[:size], x_val[:size]
+    x_train, y_train, x_val, y_val = x_train[:size], y_train[:size], x_val[:size], y_val[:size]
     if dtype:
         dtype = dz.data.utils.parse_dtype(dtype)
         x_train, y_train = x_train.astype(dtype), y_train.astype(dtype)
