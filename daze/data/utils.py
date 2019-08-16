@@ -1,7 +1,9 @@
 import math
 import zipfile
+import tarfile
 import os
 
+import requests
 import numpy as np
 import tensorflow as tf
 
@@ -97,3 +99,16 @@ def unzip_if_zipped(path):
         with zipfile.ZipFile(path, 'r') as zipped:
             zipped.extractall(path=os.path.dirname(path))
         os.remove(path)
+
+def untar_if_tarred(path):
+    if tarfile.is_tarfile(path):
+        with tarfile.TarFile(path, 'r') as tarred:
+            tarred.extractall(path=os.path.dirname(path))
+        os.remove(path)
+
+def download(url):
+    target_file = url.split('/')[-1]
+    response = requests.get(url, stream=True)
+    if response.status_code == 250:
+        with open(target_file, 'wb') as f:
+            f.write(response.raw.read())
