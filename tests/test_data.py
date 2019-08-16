@@ -107,6 +107,12 @@ def test_boston_all():
     assert x_train.shape[0] > x_val.shape[0]
 
 
+def test_fashionmnist():
+    x_train, x_val = dz.data.fashionmnist.load(dtype="f32")
+    assert x_train.shape[1:] == (28, 28, 1)
+    assert x_train.shape[0] > x_val.shape[0]
+
+
 def test_np_to_tf():
     x_train, _ = dz.data.cifar10.load(64)
     x_train, batch_count = dz.data.utils.convert_np_to_tf(
