@@ -128,16 +128,24 @@ def maximum_mean_discrepancy():
     Paper: https://arxiv.org/pdf/1706.02262.pdf
     """
     def compute_kernel(x, y):
-        x_size = tf.shape(x)[0]
-        y_size = tf.shape(y)[0]
-        dim = tf.shape(x)[1]
+        x_size = x.shape[0]
+        y_size = y.shape[0]
+        dim = x.shape[1]
         tiled_x = tf.tile(tf.reshape(x, tf.stack([x_size, 1, dim])), tf.stack([1, y_size, 1]))
         tiled_y = tf.tile(tf.reshape(y, tf.stack([1, y_size, dim])), tf.stack([x_size, 1, 1]))
         return tf.exp(-tf.reduce_mean(tf.square(tiled_x - tiled_y), axis=2) / tf.cast(dim, tf.float32))
 
+    true_samples = None
+    
+    def sample(dim):
+        nonlocal true_samples
+        true_samples = tf.random.normal(tf.stack([200, dim]))
+
+    @trace_graph
     def _maximum_mean_discrepancy(**forward_pass):
-        x = forward_pass["x"]
-        z = forward_pass["z"]
+        z = forward_pass["z"]        
+        if not isinstance(true_samples, tf.Tensor): sample(z.shape[1])
+        x = true_samples
         x_kernel = compute_kernel(x, x)
         z_kernel = compute_kernel(z, z)
         xz_kernel = compute_kernel(x, z)

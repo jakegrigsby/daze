@@ -50,3 +50,13 @@ def L1SparseAutoEncoder(encoder, decoder, gamma, preprocessing_steps=[]):
     return Model(
         encoder, decoder, preprocessing_steps=preprocessing_steps, loss_funcs=loss_funcs
     )
+
+
+def InfoVariationalAutoEncoder(encoder, decoder, preprocessing_steps=[]):
+        loss_funcs = [loss.reconstruction(), loss.maximum_mean_discrepancy()]
+        return Model(
+                encoder, decoder, 
+                preprocessing_steps=preprocessing_steps,
+                forward_pass_func=forward_pass.probabilistic_encode_decode,
+                loss_funcs=loss_funcs
+                )
