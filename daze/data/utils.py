@@ -95,20 +95,26 @@ def relative_path(root, path):
             )
 
 def unzip_if_zipped(path):
-    if zipfile.is_zipfile(path):
-        with zipfile.ZipFile(path, 'r') as zipped:
-            zipped.extractall(path=os.path.dirname(path))
-        os.remove(path)
+    try:
+        if zipfile.is_zipfile(path):
+            with zipfile.ZipFile(path, 'r') as zipped:
+                zipped.extractall(path=os.path.dirname(path))
+            os.remove(path)
+    except FileNotFoundError:
+        return
 
 def untar_if_tarred(path):
-    if tarfile.is_tarfile(path):
-        with tarfile.TarFile(path, 'r') as tarred:
-            tarred.extractall(path=os.path.dirname(path))
-        os.remove(path)
+    try:
+        if tarfile.is_tarfile(path):
+            with tarfile.TarFile(path, 'r') as tarred:
+                tarred.extractall(path=os.path.dirname(path))
+            os.remove(path)
+    except FileNotFoundError:
+        return
 
 def download(url):
     target_file = url.split('/')[-1]
     response = requests.get(url, stream=True)
-    if response.status_code == 250:
+    if response.status_code == 200:
         with open(target_file, 'wb') as f:
             f.write(response.raw.read())

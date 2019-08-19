@@ -58,6 +58,33 @@ def test_cifar10_float():
     x_train, x_val = dz.data.cifar10.load(dtype=np.float32, size=10)
     assert x_train.dtype == np.float32
 
+#############
+## CIFAR100 ##
+#############
+
+def test_cifar100_batch():
+    x_train, x_val = dz.data.cifar100.load(64)
+    assert x_train.shape[0] == 64
+    assert x_val.shape[0] == 64
+    assert x_train.shape[1] == 32
+    assert x_train.shape[1] == x_train.shape[2]
+
+def test_cifar100_all():
+    x_train, x_val = dz.data.cifar100.load()
+    assert x_train.shape[0] > x_val.shape[0]
+
+def test_cifar100_return_labels():
+    (x_train, y_train), (x_val, y_val) = dz.data.cifar100.load(return_labels=True, size=10)
+    assert x_train.shape[0] == y_train.shape[0]
+    assert x_val.shape[0] == y_val.shape[0]
+
+def test_cifar100_float():
+    x_train, x_val = dz.data.cifar100.load(dtype="f32", size=10)
+    assert x_train.dtype == np.float32
+    x_train, x_val = dz.data.cifar100.load(dtype=np.float32, size=10)
+    assert x_train.dtype == np.float32
+
+
 ####################
 ## BOSTON HOUSING ##
 ####################
@@ -135,6 +162,14 @@ def test_dsprites_return_labels():
     assert y.dtype == np.float64
     assert y.shape[0] == x.shape[0]
     assert y.shape[1] == 6
+
+############
+## CHAIRS ##
+############
+
+def test_chairs_all():
+    x = dz.data.chairs.load()
+    assert x
 
 ##########
 ## MISC ##
