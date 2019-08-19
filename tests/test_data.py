@@ -43,20 +43,19 @@ def test_cifar10_batch():
     assert x_train.shape[1] == 32
     assert x_train.shape[1] == x_train.shape[2]
 
-
 def test_cifar10_all():
     x_train, x_val = dz.data.cifar10.load()
     assert x_train.shape[0] > x_val.shape[0]
 
 def test_cifar10_return_labels():
-    (x_train, y_train), (x_val, y_val) = dz.data.cifar10.load(return_labels=True)
+    (x_train, y_train), (x_val, y_val) = dz.data.cifar10.load(return_labels=True, size=10)
     assert x_train.shape[0] == y_train.shape[0]
     assert x_val.shape[0] == y_val.shape[0]
 
 def test_cifar10_float():
-    x_train, x_val = dz.data.cifar10.load(dtype="f32")
+    x_train, x_val = dz.data.cifar10.load(dtype="f32", size=10)
     assert x_train.dtype == np.float32
-    x_train, x_val = dz.data.cifar10.load(dtype=np.float32)
+    x_train, x_val = dz.data.cifar10.load(dtype=np.float32, size=10)
     assert x_train.dtype == np.float32
 
 ####################
@@ -70,9 +69,9 @@ def test_boston_batch():
     assert x_train.shape[1] == 13
 
 def test_boston_float32():
-    x_train, x_val = dz.data.boston_housing.load(dtype="f32")
+    x_train, x_val = dz.data.boston_housing.load(dtype="f32", size=10)
     assert x_train.dtype == np.float32
-    x_train, x_val = dz.data.boston_housing.load(dtype=np.float32)
+    x_train, x_val = dz.data.boston_housing.load(dtype=np.float32, size=10)
     assert x_train.dtype == np.float32
 
 def test_boston_all():
@@ -80,7 +79,7 @@ def test_boston_all():
     assert x_train.shape[0] > x_val.shape[0]
 
 def test_boston_return_labels():
-    (x_train, y_train), (x_val, y_val) = dz.data.boston_housing.load(return_labels=True)
+    (x_train, y_train), (x_val, y_val) = dz.data.boston_housing.load(return_labels=True, size=10)
     assert x_train.shape[0] == y_train.shape[0]
     assert x_val.shape[0] == y_val.shape[0]
 
@@ -100,15 +99,42 @@ def test_fashionmnist_batch():
     assert x_val.shape[0] == 64
 
 def test_fashionmnist_float():
-    x_train, x_val = dz.data.fashionmnist.load(dtype=np.float32)
+    x_train, x_val = dz.data.fashionmnist.load(dtype=np.float32, size=10)
     assert x_train.dtype == np.float32
-    x_train, x_val = dz.data.fashionmnist.load(dtype="f32")
+    x_train, x_val = dz.data.fashionmnist.load(dtype="f32", size=10)
     assert x_train.dtype == np.float32
 
 def test_fashionmnist_return_labels():
-    (x_train, y_train), (x_val, y_val) = dz.data.fashionmnist.load(return_labels=True)
+    (x_train, y_train), (x_val, y_val) = dz.data.fashionmnist.load(return_labels=True, size=10)
     assert x_train.shape[0] == y_train.shape[0]
     assert x_val.shape[0] == y_val.shape[0]
+
+##############
+## DSPRITES ##
+##############
+
+def test_dsprites_all():
+    x = dz.data.dsprites.load()
+    assert x.shape[0] > 7000
+    assert x.shape[1:] == (64, 64)
+    assert x.dtype == np.uint8
+
+def test_dsprites_batch():
+    x = dz.data.dsprites.load(size=8)
+    assert x.shape[1:] == (64, 64)
+    assert x.shape[0] == 8
+
+def test_dsprites_float():
+    x = dz.data.dsprites.load(size=10, dtype=np.float32)
+    assert x.dtype == np.float32
+    x = dz.data.dsprites.load(size=10, dtype="f32")
+    assert x.dtype == np.float32
+
+def test_dsprites_return_labels():
+    x, y = dz.data.dsprites.load(size=10, return_labels=True)
+    assert y.dtype == np.float64
+    assert y.shape[0] == x.shape[0]
+    assert y.shape[1] == 6
 
 ##########
 ## MISC ##
