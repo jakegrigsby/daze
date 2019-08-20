@@ -2,7 +2,9 @@ imageio
 matplotlib
 numpy
 opencv-python
+pandas
 pytest
+requests
 scipy
 tensorflow==2.0.0-beta0
 tensorflow_probability

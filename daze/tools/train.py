@@ -87,6 +87,11 @@ def main():
         x_train /= 255
         x_val /= 255
         decoder = MnistDecoder()
+    elif dataset_type in ["fashionmnist"]:
+        x_train, x_val = dz.data.fashionmnist.load(dtype="f")
+        x_train /= 255
+        x_val /= 255
+        decoder = MnistDecoder()
     elif os.path.exists(dataset_type):
         dataset = dz.data.utils.load_from_file(dataset_type)
         x_train, x_val = dz.data.utils.train_val_split(dataset)
