@@ -9,7 +9,7 @@ import daze as dz
 from daze.nets.encoders import *
 from daze.nets.decoders import *
 
-def load_model_from_checkpoint_path(checkpoint_path, latent_dim=16):
+def load_model_from_checkpoint_path(checkpoint_path, latent_dim=32):
     #  @TODO: save model class info to checkpoint so this, and latent_dim, is 
         # inferred automatically. For now, just support VAEs
     encoder = ConvolutionalEncoder(latent_dim=latent_dim)
