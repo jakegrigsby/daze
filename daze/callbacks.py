@@ -192,6 +192,7 @@ class TensorboardLatentSpacePlot(EpochCallback):
         current_step = info_dict["current_epoch"]
         with log_writer.as_default():
             tf.summary.image('Latent Space', img, step=current_step)
+        plt.close(fig)
 
 tensorboard_latent_space_plot = TensorboardLatentSpacePlot
 
