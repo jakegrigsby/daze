@@ -1,11 +1,3 @@
-# DAZE
-## Autoencoders
-
-TODO: intro here...
-
-
-Daze includes a number of popular datasets and algorithms out-of-the-box. Here's a short script that trains a Denoising Autoencoder on MNIST.
-```python
 import daze as dz
 from daze.callbacks import *
 from daze.data.utils import convert_np_to_tf
@@ -21,14 +13,3 @@ callbacks = [checkpoints(1), tensorboard_loss_scalars(), tensorboard_latent_spac
 
 train_tf, val_tf = convert_np_to_tf(train, batch_size=32), convert_np_to_tf(val, batch_size=32)
 model.train(train_tf, val_tf, epochs=20, verbosity=2, callbacks=callbacks)
-```
-This script runs 20 epochs of training, saving weights along the way. It also generates diagrams like these - showing the quality of the reconstruction at the end of each epoch.
-
-![](docs/source/media/reconstructions_mnist.png)
-
-Because the latent dimension size was <= 3, the `tensorboard_latent_space_plot` callback drew this diagram:
-
-![](docs/source/media/latent_space_mnist.png)
-
-
-

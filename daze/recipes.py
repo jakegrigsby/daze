@@ -9,7 +9,7 @@ def ContractiveAutoEncoder(encoder, decoder, gamma, preprocessing_steps=[]):
     return Model(encoder, decoder, loss_funcs=loss_funcs)
 
 
-def DenoisingAutoEncoder(encoder, decoder, gamma, preprocessing_steps=[]):
+def DenoisingAutoEncoder(encoder, decoder, gamma=.1, preprocessing_steps=[]):
     preprocessing_steps += [preprocessing.random_mask(gamma)]
     loss_funcs = [loss.denoising_reconstruction()]
     return Model(
