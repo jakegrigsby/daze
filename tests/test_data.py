@@ -171,6 +171,25 @@ def test_chairs_all():
     x = dz.data.chairs.load()
     assert x
 
+###########
+## ESC50 ##
+###########
+
+def test_esc50_all():
+    x = dz.data.esc50.load()
+    assert x.shape[0] == 2000
+    assert x.shape[1] == 220500
+
+def test_esc50_batch():
+    x = dz.data.esc50.load(size=10)
+    assert x.shape[0] == 10
+    assert x.shape[1] == 220500
+
+def test_esc50_float():
+    x = dz.data.esc50.load(dtype="f32")
+    assert x.dtype == np.float32
+
+
 ##########
 ## MISC ##
 ##########
