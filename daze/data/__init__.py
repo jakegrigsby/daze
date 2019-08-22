@@ -3,4 +3,7 @@ from . import mnist
 from . import fashionmnist
 from . import boston_housing
 from . import dsprites
+from . import chairs
+from . import cifar100
+from . import esc50
 from . import utils
