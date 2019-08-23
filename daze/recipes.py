@@ -1,4 +1,4 @@
-from .model import Model
+from .model import AutoEncoder
 from . import preprocessing
 from . import loss
 from . import forward_pass
@@ -6,20 +6,20 @@ from . import forward_pass
 
 def ContractiveAutoEncoder(encoder, decoder, gamma, preprocessing_steps=[]):
     loss_funcs = [loss.reconstruction(), loss.contractive(0.1)]
-    return Model(encoder, decoder, loss_funcs=loss_funcs)
+    return AutoEncoder(encoder, decoder, loss_funcs=loss_funcs)
 
 
 def DenoisingAutoEncoder(encoder, decoder, gamma=.1, preprocessing_steps=[]):
     preprocessing_steps += [preprocessing.random_mask(gamma)]
     loss_funcs = [loss.denoising_reconstruction()]
-    return Model(
+    return AutoEncoder(
         encoder, decoder, preprocessing_steps=preprocessing_steps, loss_funcs=loss_funcs
     )
 
 
 def VariationalAutoEncoder(encoder, decoder, preprocessing_steps=[]):
     loss_funcs = [loss.reconstruction(), loss.kl(1.0)]
-    return Model(
+    return AutoEncoder(
         encoder,
         decoder,
         preprocessing_steps=preprocessing_steps,
@@ -30,7 +30,7 @@ def VariationalAutoEncoder(encoder, decoder, preprocessing_steps=[]):
 
 def BetaVariationalAutoEncoder(encoder, decoder, beta, preprocessing_steps=[]):
     loss_funcs = [loss.reconstruction(), loss.kl(beta)]
-    return Model(
+    return AutoEncoder(
         encoder,
         decoder,
         preprocessing_steps=preprocessing_steps,
@@ -40,21 +40,21 @@ def BetaVariationalAutoEncoder(encoder, decoder, beta, preprocessing_steps=[]):
 
 def KlSparseAutoEncoder(encoder, decoder, rho, beta, preprocessing_steps=[]):
     loss_funcs = [loss.reconstruction(), loss.sparsity(rho, beta)]
-    return Model(
+    return AutoEncoder(
         encoder, decoder, preprocessing_steps=preprocessing_steps, loss_funcs=loss_funcs
     )
 
 
 def L1SparseAutoEncoder(encoder, decoder, gamma, preprocessing_steps=[]):
     loss_funcs = [loss.reconstruction(), loss.latent_l1(gamma)]
-    return Model(
+    return AutoEncoder(
         encoder, decoder, preprocessing_steps=preprocessing_steps, loss_funcs=loss_funcs
     )
 
 
 def InfoVariationalAutoEncoder(encoder, decoder, preprocessing_steps=[]):
         loss_funcs = [loss.reconstruction(), loss.maximum_mean_discrepancy()]
-        return Model(
+        return AutoEncoder(
                 encoder, decoder, 
                 preprocessing_steps=preprocessing_steps,
                 forward_pass_func=forward_pass.probabilistic_encode_decode,

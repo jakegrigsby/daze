@@ -11,8 +11,46 @@ from . import forward_pass
 from .tracing import reset_trace_record, trace_graph
 from . import data
 
+class DZModel:
+    def __init__(
+        self,
+        preprocessing_steps=[],
+    ):
+        super().__init__()
+        self.preprocessing_steps = preprocessing_steps
 
-class Model(tf.keras.Model):
+    def make_tape_container(self):
+        class _TapeContainer:
+            def __init__(self):
+                self.tape = None
+        return _TapeContainer()
+
+    def preprocess_input(self, x):
+        for func in self.preprocessing_steps:
+            x = func(x)
+        return x
+
+    def init_logging(self, save_path):
+        """ Sets up log directories for training.
+        """
+        save_path = os.path.join(os.getcwd(), save_path)
+        # get unique number for this run
+        i = 0
+        while os.path.exists(save_path + f"_{i}"):
+            i += 1
+        save_path += f"_{i}"
+        # Setup checkpoints and logging
+        checkpoint_dir = os.path.join(save_path, "checkpoints")
+        os.makedirs(checkpoint_dir)
+        log_dir = os.path.join(save_path, "logs")
+        os.makedirs(log_dir)
+        return log_dir, checkpoint_dir
+
+    def apply_gradients(self, optimizer, gradients, variables):
+        """ Applies the gradients to the optimizer. """
+        optimizer.apply_gradients(zip(gradients, variables))
+
+class AutoEncoder(DZModel):
     def __init__(
         self,
         encoder,
@@ -21,22 +59,12 @@ class Model(tf.keras.Model):
         forward_pass_func=forward_pass.standard_encode_decode,
         loss_funcs=[loss.reconstruction()],
     ):
-        super().__init__()
+        super().__init__(preprocessing_steps)
         self.encoder, self.decoder = encoder, decoder
-        self.preprocessing_steps = preprocessing_steps
         self.call = functools.partial(forward_pass_func, self)
         self.loss_funcs = loss_funcs
 
-        class _TapeContainer:
-            def __init__(self):
-                self.tape = None
-
-        self.tape_container = _TapeContainer()
-
-    def preprocess_input(self, x):
-        for func in self.preprocessing_steps:
-            x = func(x)
-        return x
+        self.tape_container = self.make_tape_container()
 
     def compute_loss(self, original_x, x):
         with tf.GradientTape(persistent=True) as tape:
@@ -98,32 +126,12 @@ class Model(tf.keras.Model):
     def decode(self, h):
         return self.decoder(h)
 
-    def init_logging(self, save_path):
-        """ Sets up log directories for training.
-        """
-        save_path = os.path.join(os.getcwd(), save_path)
-        # get unique number for this run
-        i = 0
-        while os.path.exists(save_path + f"_{i}"):
-            i += 1
-        save_path += f"_{i}"
-        # Setup checkpoints and logging
-        checkpoint_dir = os.path.join(save_path, "checkpoints")
-        os.makedirs(checkpoint_dir)
-        log_dir = os.path.join(save_path, "logs")
-        os.makedirs(log_dir)
-        return log_dir, checkpoint_dir
-
     def compute_gradients(self, original_x, x):
         """ Computes gradient of custom loss function.
         """
         loss, tape = self.compute_loss(original_x, x)
         grad = tape.gradient(loss, self.trainable_variables)
         return grad, loss
-
-    def apply_gradients(self, optimizer, gradients, variables):
-        """ Applies the gradients to the optimizer. """
-        optimizer.apply_gradients(zip(gradients, variables))
 
     def train(
         self,
@@ -199,7 +207,7 @@ class Model(tf.keras.Model):
         self.save_weights(checkpoint_dir)
 
 
-class GAN(tf.keras.Model):
+class GAN(DZModel):
     def __init__(
         self,
         generator,
@@ -210,25 +218,15 @@ class GAN(tf.keras.Model):
         generator_loss=[loss.vanilla_generator_loss()],
         discriminator_loss=[loss.vanilla_discriminator_loss()],
     ):
-        super().__init__()
+        super().__init__(preprocessing_steps)
         self.generator, self.discriminator = generator, discriminator
-        self.preprocessing_steps = preprocessing_steps
         self.call = functools.partial(forward_pass_func, self)
         self.generator_loss_funcs = generator_loss
         self.noise_dim = noise_dim
         self.discriminator_loss_funcs = discriminator_loss
 
-        class _TapeContainer:
-            def __init__(self):
-                self.tape = None
-
-        self.gen_tape_container = _TapeContainer()
-        self.disc_tape_container = _TapeContainer()
-
-    def preprocess_input(self, x):
-        for func in self.preprocessing_steps:
-            x = func(x)
-        return x
+        self.gen_tape_container = self.make_tape_container()
+        self.disc_tape_container = self.make_tape_container()
 
     def compute_loss(self, original_x, x):
         with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
@@ -271,23 +269,7 @@ class GAN(tf.keras.Model):
     def load_weights(self, path):
         self.generator.load_weights(os.path.join(path, "generator"))
         self.discriminator.load_weights(os.path.join(path, "discriminator"))
-
-    def init_logging(self, save_path):
-        """ Sets up log directories for training.
-        """
-        save_path = os.path.join(os.getcwd(), save_path)
-        # get unique number for this run
-        i = 0
-        while os.path.exists(save_path + f"_{i}"):
-            i += 1
-        save_path += f"_{i}"
-        # Setup checkpoints and logging
-        checkpoint_dir = os.path.join(save_path, "checkpoints")
-        os.makedirs(checkpoint_dir)
-        log_dir = os.path.join(save_path, "logs")
-        os.makedirs(log_dir)
-        return log_dir, checkpoint_dir
-
+        
     def compute_gradients(self, original_x, x):
         """ Computes gradient of custom loss function.
         """
@@ -295,10 +277,6 @@ class GAN(tf.keras.Model):
         gen_grads = gen_tape.gradient(gen_loss, self.generator.trainable_variables)
         disc_grads = disc_tape.gradient(disc_loss, self.discriminator.trainable_variables)
         return gen_grads, gen_loss, disc_grads, disc_loss
-
-    def apply_gradients(self, optimizer, gradients, variables):
-        """ Applies the gradients to the optimizer. """
-        optimizer.apply_gradients(zip(gradients, variables))
 
     def train(
         self,
