@@ -30,5 +30,14 @@ Because the latent dimension size was <= 3, the `tensorboard_latent_space_plot` 
 
 ![](docs/source/media/latent_space_mnist.png)
 
+The `recipes` module includes implementations of:
 
+| Name | Paper |
+| --- | :---: | 
+|Contractive AE | [Rifai et al.](http://Jakes-MacBook-Pro-2.local:6006/)
+|Denoising AE| []
+|Sparse AE|
+|VAE|
+|BetaVAE|
+|InfoVAE|
 

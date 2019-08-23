@@ -153,4 +153,21 @@ def maximum_mean_discrepancy():
     
     return _maximum_mean_discrepancy
 
-       
+cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+
+def vanilla_discriminator_loss():
+    def _vanilla_discriminator_loss(**forward_pass):
+        real_output = forward_pass["real_output"]
+        fake_output = forward_pass["fake_output"]
+        real_loss = cross_entropy(tf.ones_like(real_output), real_output)
+        fake_loss = cross_entropy(tf.zeros_like(fake_output), fake_output)
+        total_loss = real_loss + fake_loss
+        return total_loss
+    return _vanilla_discriminator_loss
+
+def vanilla_generator_loss():
+    def _vanilla_generator_loss(**forward_pass):
+        fake_output = forward_pass["fake_output"]
+        return cross_entropy(tf.ones_like(fake_output), fake_output)
+    return _vanilla_generator_loss
+           

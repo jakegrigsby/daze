@@ -17,7 +17,16 @@ daze/nets/decoders/__pycache__
 daze/tools/__pycache__
 daze.egg-info
 \.coverage
+.coverage*
 
 **/saves/
 
 docs/build/
+
+daze/data/esc50/ESC-50-master/
+daze/data/chairs/rendered_chairs/
+daze/data/dsprites/dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz
+daze/data/fashionmnist/fashion-mnist_test.csv
+daze/data/fashionmnist/fashion-mnist_train.csv
+
+daze/examples/saves*
