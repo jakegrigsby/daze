@@ -44,7 +44,7 @@ def make_callbacks(model):
 
 
 def test_default():
-    model = dz.Model(ConvolutionalEncoder(3), CifarDecoder())
+    model = dz.AutoEncoder(ConvolutionalEncoder(3), CifarDecoder())
     cbs = make_callbacks(model)
     train(model, cbs)
 
