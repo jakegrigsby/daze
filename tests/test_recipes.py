@@ -48,6 +48,10 @@ def test_default():
     cbs = make_callbacks(model)
     train(model, cbs)
 
+def test_gan():
+    model = dz.GAN(CifarDecoder(), 100, ConvolutionalEncoder(1))
+    train(model, None)
+
 def test_vae():
     model = dz.recipes.VariationalAutoEncoder(ConvolutionalEncoder(), CifarDecoder())
     cbs = make_callbacks(model)

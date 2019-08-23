@@ -6,7 +6,7 @@ import functools
 import numpy as np
 import tensorflow as tf
 
-import loss
+from . import loss
 from . import forward_pass
 from .tracing import reset_trace_record, trace_graph
 from . import data
@@ -203,6 +203,7 @@ class GAN(tf.keras.Model):
     def __init__(
         self,
         generator,
+        noise_dim,
         discriminator,
         preprocessing_steps=[],
         forward_pass_func=forward_pass.generative_adversarial,
@@ -214,13 +215,15 @@ class GAN(tf.keras.Model):
         self.preprocessing_steps = preprocessing_steps
         self.call = functools.partial(forward_pass_func, self)
         self.generator_loss_funcs = generator_loss
+        self.noise_dim = noise_dim
         self.discriminator_loss_funcs = discriminator_loss
 
         class _TapeContainer:
             def __init__(self):
                 self.tape = None
 
-        self.tape_container = _TapeContainer()
+        self.gen_tape_container = _TapeContainer()
+        self.disc_tape_container = _TapeContainer()
 
     def preprocess_input(self, x):
         for func in self.preprocessing_steps:
@@ -230,8 +233,10 @@ class GAN(tf.keras.Model):
     def compute_loss(self, original_x, x):
         with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
             forward_pass = self.call(original_x, x)
-            self.tape_container.tape = tape
-            forward_pass["tape_container"] = self.tape_container
+            self.gen_tape_container.tape = gen_tape
+            self.disc_tape_container.tape = disc_tape
+            forward_pass["gen_tape_container"] = self.gen_tape_container
+            forward_pass["disc_tape_container"] = self.disc_tape_container
             gen_loss = 0
             for loss_func in self.generator_loss_funcs:
                 gen_loss += loss_func(**forward_pass)
@@ -241,12 +246,12 @@ class GAN(tf.keras.Model):
         return gen_loss, gen_tape, disc_loss, disc_tape
 
     @trace_graph
-    def generate(self, x, training=False):
-        return self.generator(noise, training=training)
+    def generate(self, x):
+        return self.generator(x)
     
     @trace_graph
-    def discriminate(self, x, training=False):
-        return self.discriminator(x, training=training)
+    def discriminate(self, x):
+        return self.discriminator(x)
 
     @property
     def weights(self):
@@ -261,7 +266,7 @@ class GAN(tf.keras.Model):
         if not os.path.exists(path):
             os.makedirs(path)
         self.generator.save_weights(os.path.join(path, "generator"))
-        self.dicriminator.save_weights(os.path.join(path, "discriminator"))
+        self.discriminator.save_weights(os.path.join(path, "discriminator"))
 
     def load_weights(self, path):
         self.generator.load_weights(os.path.join(path, "generator"))
@@ -331,7 +336,7 @@ class GAN(tf.keras.Model):
                 train_loss_gen(gen_loss)
                 train_loss_disc(disc_loss)
                 self.apply_gradients(gen_optimizer, gen_grads, self.generator.trainable_variables)
-                self.apply_gradients(disc_optimizer, disc_gradients, self.discriminator.trainable_variables)
+                self.apply_gradients(disc_optimizer, disc_grads, self.discriminator.trainable_variables)
                 if verbosity > 1 and batch_count:
                     progbar.update(batch + 1)
                 if callbacks:
@@ -353,7 +358,7 @@ class GAN(tf.keras.Model):
 
             if verbosity >= 1:
                 print(
-                        f"Epoch {epoch}, Train_Loss (Gen: {train_loss_gen.result()}, Disc: {train_loss_val.result()}), Val_Loss (Gen: {val_loss_gen.result()}, Disc: {val_loss_disc.result()}) Train_Time {end_time - start_time}"
+                        f"Epoch {epoch}, Train_Loss (Gen: {train_loss_gen.result()}, Disc: {train_loss_disc.result()}), Val_Loss (Gen: {val_loss_gen.result()}, Disc: {val_loss_disc.result()}) Train_Time {end_time - start_time}"
                 )
             
             if callbacks:
