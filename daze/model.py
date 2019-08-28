@@ -12,14 +12,15 @@ from .tracing import reset_trace_record, trace_graph
 from . import data
 
 class DZModel:
-    def __init__(
-        self,
-        preprocessing_steps=[],
-    ):
-        super().__init__()
+    def __init__(self, preprocessing_steps=[]):
         self.preprocessing_steps = preprocessing_steps
 
     def make_tape_container(self):
+        """
+        Trick the autograph system into only tracing each function once by wrapping python
+        objects in a superobject with a constant id. We use this to pass gradient tapes
+        to contractive loss.
+        """
         class _TapeContainer:
             def __init__(self):
                 self.tape = None
@@ -63,7 +64,6 @@ class AutoEncoder(DZModel):
         self.encoder, self.decoder = encoder, decoder
         self.call = functools.partial(forward_pass_func, self)
         self.loss_funcs = loss_funcs
-
         self.tape_container = self.make_tape_container()
 
     def compute_loss(self, original_x, x):
@@ -211,8 +211,8 @@ class GAN(DZModel):
     def __init__(
         self,
         generator,
-        noise_dim,
         discriminator,
+        noise_dim,
         preprocessing_steps=[],
         forward_pass_func=forward_pass.generative_adversarial,
         generator_loss=[loss.vanilla_generator_loss()],

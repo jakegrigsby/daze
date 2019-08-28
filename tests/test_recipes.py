@@ -49,7 +49,7 @@ def test_default():
     train(model, cbs)
 
 def test_gan():
-    model = dz.GAN(CifarDecoder(), 100, ConvolutionalEncoder(1))
+    model = dz.GAN(CifarDecoder(), ConvolutionalEncoder(1), 100)
     train(model, None)
 
 def test_vae():

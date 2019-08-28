@@ -34,12 +34,16 @@ def kl_divergence(a, b):
         - (1 - a) * tf.math.log(1 - b)
     )
 
+def random_normal(shape):
+    """Convenience wrapper to prevent tf imports on gan demo"""
+    if not isinstance(shape, list):
+        shape = list(shape)
+    return tf.random.normal(shape)
 
 def sample(model, eps):
     logits = model.decode(eps)
     probs = tf.sigmoid(logits)
     return probs
-
 
 def sample_random(model):
     eps = tf.random.normal(shape=(100, model.latent_dim))

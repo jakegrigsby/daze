@@ -114,25 +114,10 @@ def _plot_to_image(figure):
     image = tf.expand_dims(image, 0)
     return image
 
-
 def _adjust_for_imshow(img):
     if img.shape[-1] == 1:
         img = np.squeeze(img, -1)
     return img
-
-
-def _reconstruction_acc_figure(true, pred):
-    fig = plt.figure(figsize=(20, 20))
-    rows = true.shape[0]
-    columns = 2
-    f, axarr = plt.subplots(rows, columns)
-    for row in range(rows):
-        img = _adjust_for_imshow(true[row, ...])
-        axarr[row, 0].imshow(img)
-        reconstruction = _adjust_for_imshow(pred[row, ...])
-        axarr[row, 1].imshow(reconstruction)
-    return fig
-
 
 class TensorboardImageReconstruction(EpochCallback):
     """See the Decoder's image reconstructions in tensorboard at the end of each epoch.
@@ -145,12 +130,26 @@ class TensorboardImageReconstruction(EpochCallback):
         """
         self.examples = examples
 
+    def _reconstruction_acc_figure(self, true, pred):
+        fig = plt.figure(figsize=(20, 20))
+        rows = true.shape[0]
+        columns = 2
+        _, axarr = plt.subplots(rows, columns)
+        for row in range(rows):
+            img = _adjust_for_imshow(true[row, ...])
+            axarr[row, 0].imshow(img)
+            reconstruction = _adjust_for_imshow(pred[row, ...])
+            axarr[row, 1].imshow(reconstruction)
+        axarr[0,0].set_title("Original")
+        axarr[0,1].set_title("Reconstruction")
+        return fig
+
     def __call__(self, model, **info_dict):
         if not self.time_to_run(**info_dict):
             return
         plt.clf()
         pred = model.predict(self.examples)
-        fig = _reconstruction_acc_figure(self.examples, pred)
+        fig = self._reconstruction_acc_figure(self.examples, pred)
         img = _plot_to_image(fig)
         log_writer = tf.summary.create_file_writer(info_dict["log_dir"])
         current_epoch = info_dict["current_epoch"]
@@ -159,6 +158,36 @@ class TensorboardImageReconstruction(EpochCallback):
 
 
 tensorboard_image_reconstruction = TensorboardImageReconstruction
+
+class TensorboardGenerativeSample(EpochCallback):
+    def __init__(self, seeds=None):
+        self.seeds = seeds
+
+    def _img_fig(self, imgs, epoch):
+        fig = plt.figure(figsize=(20, 20))
+        rows = imgs.shape[0]
+        _, axarr = plt.subplots(rows, 1)
+        for row in range(rows):
+            img = _adjust_for_imshow(imgs[row, ...])
+            axarr[row].imshow(img)
+        axarr[0].set_title(f"Generative Samples, Epoch {epoch}")
+        return fig
+
+    def __call__(self, model, **info_dict):
+        if not self.time_to_run(**info_dict):
+            return
+        plt.clf()
+        samples = model.generate(self.seeds)
+        epoch = info_dict["current_epoch"]
+        fig = self._img_fig(samples, epoch)
+        img = _plot_to_image(fig)
+        log_writer = tf.summary.create_file_writer(info_dict["log_dir"])
+        current_epoch = info_dict["current_epoch"]
+        with log_writer.as_default():
+            tf.summary.image("Generative Sample", img, step=current_epoch)
+
+tensorboard_generative_sample = TensorboardGenerativeSample
+
 
 class TensorboardLatentSpacePlot(EpochCallback):
     """Plot 3D, 2D and 1D latent spaces. Useful for clustering and dimensionality reduction.
