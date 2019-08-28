@@ -31,6 +31,12 @@ class DZModel:
             x = func(x)
         return x
 
+    def recover_batch_count(batched_tf_dataset):
+        batch_count = 0
+        for x in batched_tf_dataset:
+            batch_count += 1
+        return batch_count
+
     def init_logging(self, save_path):
         """ Sets up log directories for training.
         """
@@ -152,9 +158,7 @@ class AutoEncoder(DZModel):
         train_loss = tf.keras.metrics.Mean("train_loss", dtype=tf.float32)
         val_loss = tf.keras.metrics.Mean("val_loss", dtype=tf.float32)
 
-        batch_count = 0
-        for x in train_dataset:
-            batch_count += 1
+        batch_count = self.recover_batch_count(train_dataset)
 
         for epoch in range(epochs):
             if verbosity > 1: progbar = tf.keras.utils.Progbar(batch_count)
@@ -301,9 +305,7 @@ class GAN(DZModel):
         val_loss_gen = tf.keras.metrics.Mean("generator_val_loss", dtype=tf.float32)
         val_loss_disc = tf.keras.metrics.Mean("discriminator_val_loss", dtype=tf.float32)
 
-        batch_count = 0
-        for x in train_dataset:
-            batch_count += 1
+        batch_count = self.recover_batch_count(train_dataset)
 
         for epoch in range(epochs):
             if verbosity > 1: progbar = tf.keras.utils.Progbar(batch_count)
