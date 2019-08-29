@@ -31,7 +31,7 @@ class DZModel:
             x = func(x)
         return x
 
-    def recover_batch_count(batched_tf_dataset):
+    def recover_batch_count(self, batched_tf_dataset):
         batch_count = 0
         for x in batched_tf_dataset:
             batch_count += 1
