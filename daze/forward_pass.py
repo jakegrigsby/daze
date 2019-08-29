@@ -54,10 +54,12 @@ def standard_encode_decode(model, original_x, x):
 def generative_adversarial(model, original_x, x):
     noise = tf.random.normal([x.shape[0], model.noise_dim])
     generated_images = model.generate(noise)
-    real_output = model.discriminate(x)
-    fake_output = model.discriminate(generated_images)
-    return  {
+    real_features, real_output = model.discriminate(x)
+    fake_features, fake_output = model.discriminate(generated_images)
+    return {
             "generated_images" : generated_images,
+            "real_features" : real_features,
             "real_output" : real_output,
+            "fake_features" : fake_features,
             "fake_output" : fake_output,
     }

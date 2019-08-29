@@ -227,6 +227,7 @@ class GAN(DZModel):
     ):
         super().__init__(preprocessing_steps)
         self.generator, self.discriminator = generator, discriminator
+        self.disc_classifier_layer = tf.keras.layers.Dense(1, activation='sigmoid')
         self.forward = functools.partial(forward_pass_func, self)
         self.generator_loss_funcs = generator_loss
         self.noise_dim = noise_dim
@@ -256,7 +257,9 @@ class GAN(DZModel):
     
     @trace_graph
     def discriminate(self, x):
-        return self.discriminator(x, training=self._training)
+        features = self.discriminator(x, training=self._training)
+        classification = self.disc_classifier_layer(features)
+        return features, classification
 
     @property
     def weights(self):

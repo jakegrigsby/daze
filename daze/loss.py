@@ -184,4 +184,12 @@ def one_sided_label_smoothing():
         return total_loss
     return _one_sided_label_smoothing
 
+def feature_matching():
+    @trace_graph
+    def _feature_matching(**forward_pass):
+        real_features = forward_pass["real_features"]
+        fake_features = forward_pass["fake_features"]
+        return mse(real_features, fake_features)
+    return _feature_matching
+
           
