@@ -14,6 +14,7 @@ from . import data
 class DZModel:
     def __init__(self, preprocessing_steps=[]):
         self.preprocessing_steps = preprocessing_steps
+        self._training = False
 
     def make_tape_container(self):
         """
@@ -68,14 +69,14 @@ class AutoEncoder(DZModel):
     ):
         super().__init__(preprocessing_steps)
         self.encoder, self.decoder = encoder, decoder
-        self.call = functools.partial(forward_pass_func, self)
+        self.forward = functools.partial(forward_pass_func, self)
         self.loss_funcs = loss_funcs
         self.tape_container = self.make_tape_container()
 
     def compute_loss(self, original_x, x):
         with tf.GradientTape(persistent=True) as tape:
             tape.watch(x)
-            forward_pass = self.call(original_x, x)
+            forward_pass = self.forward(original_x, x)
             self.tape_container.tape = tape
             forward_pass["tape_container"] = self.tape_container
             loss = 0
@@ -84,7 +85,7 @@ class AutoEncoder(DZModel):
         return loss, tape
 
     def predict(self, x):
-        return self.call(x, x)["x_hat"]
+        return self.forward(x, x)["x_hat"]
 
     def get_batch_encodings(self, x):
         if not isinstance(x, tf.data.Dataset):
@@ -126,11 +127,11 @@ class AutoEncoder(DZModel):
 
     @trace_graph
     def encode(self, x):
-        return self.encoder(x)
+        return self.encoder(x, training=self._training)
 
     @trace_graph
     def decode(self, h):
-        return self.decoder(h)
+        return self.decoder(h, training=self._training)
 
     def compute_gradients(self, original_x, x):
         """ Computes gradient of custom loss function.
@@ -163,6 +164,7 @@ class AutoEncoder(DZModel):
         for epoch in range(epochs):
             if verbosity > 1: progbar = tf.keras.utils.Progbar(batch_count)
             start_time = time.time()
+            self._training = True
             for (batch, (original_x)) in enumerate(train_dataset):
                 processed_x = self.preprocess_input(original_x)
                 gradients, loss = self.compute_gradients(original_x, processed_x)
@@ -182,6 +184,7 @@ class AutoEncoder(DZModel):
                 
             end_time = time.time()
             
+            self._training = False
             for original_x in val_dataset:
                 loss, _ = self.compute_loss(original_x, original_x)
                 val_loss(loss)
@@ -224,7 +227,7 @@ class GAN(DZModel):
     ):
         super().__init__(preprocessing_steps)
         self.generator, self.discriminator = generator, discriminator
-        self.call = functools.partial(forward_pass_func, self)
+        self.forward = functools.partial(forward_pass_func, self)
         self.generator_loss_funcs = generator_loss
         self.noise_dim = noise_dim
         self.discriminator_loss_funcs = discriminator_loss
@@ -234,7 +237,7 @@ class GAN(DZModel):
 
     def compute_loss(self, original_x, x):
         with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
-            forward_pass = self.call(original_x, x)
+            forward_pass = self.forward(original_x, x)
             self.gen_tape_container.tape = gen_tape
             self.disc_tape_container.tape = disc_tape
             forward_pass["gen_tape_container"] = self.gen_tape_container
@@ -249,11 +252,11 @@ class GAN(DZModel):
 
     @trace_graph
     def generate(self, x):
-        return self.generator(x)
+        return self.generator(x, training=self._training)
     
     @trace_graph
     def discriminate(self, x):
-        return self.discriminator(x)
+        return self.discriminator(x, training=self._training)
 
     @property
     def weights(self):
@@ -310,6 +313,7 @@ class GAN(DZModel):
         for epoch in range(epochs):
             if verbosity > 1: progbar = tf.keras.utils.Progbar(batch_count)
             start_time = time.time()
+            self._training = True
             for (batch, (original_x)) in enumerate(train_dataset):
                 processed_x = self.preprocess_input(original_x)
                 gen_grads, gen_loss, disc_grads, disc_loss = self.compute_gradients(original_x, processed_x)
@@ -331,6 +335,7 @@ class GAN(DZModel):
                 
             end_time = time.time()
             
+            self._training = False
             for original_x in val_dataset:
                 gen_loss, _, disc_loss, _ = self.compute_loss(original_x, original_x)
                 val_loss_gen(gen_loss)
