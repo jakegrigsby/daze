@@ -47,7 +47,7 @@ class CifarDecoder(tf.keras.models.Model):
             padding="valid",
         )
 
-    def call(self, inputs):
+    def call(self, inputs, training=False):
         x = self.dense1(inputs)
         x = tf.keras.layers.LeakyReLU()(x)
         x = self.dense2(x)

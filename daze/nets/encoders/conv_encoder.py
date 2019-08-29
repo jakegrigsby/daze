@@ -38,7 +38,7 @@ class ConvolutionalEncoder(tf.keras.models.Model):
         self.dense1 = tf.keras.layers.Dense(128, activation="linear")
         self.dense2 = tf.keras.layers.Dense(latent_dim, activation="linear")
 
-    def call(self, inputs):
+    def call(self, inputs, training=False):
         x = self.conv1(inputs)
         x = self.bn1(x)
         x = tf.keras.layers.LeakyReLU()(x)
