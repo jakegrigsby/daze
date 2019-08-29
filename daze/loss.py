@@ -172,4 +172,16 @@ def vanilla_generator_loss():
         fake_output = forward_pass["fake_output"]
         return cross_entropy(tf.ones_like(fake_output), fake_output)
     return _vanilla_generator_loss
-           
+ 
+def one_sided_label_smoothing():
+    @trace_graph
+    def _one_sided_label_smoothing(**forward_pass):
+        real_output = forward_pass["real_output"]
+        fake_output = forward_pass["fake_output"]
+        real_loss = cross_entropy(tf.ones_like(real_output)*.9, real_output)
+        fake_loss = cross_entropy(tf.zeros_like(fake_output), fake_output)
+        total_loss = real_loss + fake_loss
+        return total_loss
+    return _one_sided_label_smoothing
+
+          
