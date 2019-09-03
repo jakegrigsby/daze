@@ -28,14 +28,14 @@ def random_mask(destruction_coeff, seed=None):
     return _random_mask
 
 
-def gaussian_noise(mean, std, seed=None):
+def gaussian_noise(coeff, mean, std, seed=None):
     """
     Inject random gaussian noise with given mean and std.
     """
 
     def _gaussian_noise(input_batch):
         noise = tf.random.normal(input_batch.shape, mean, std, seed=seed)
-        return input_batch + noise
+        return input_batch + coeff*noise
 
     return _gaussian_noise
 

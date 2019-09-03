@@ -17,13 +17,15 @@ class EasyEncoder(tf.keras.models.Model):
         self.layer2 = tf.keras.layers.Dense(300, activation="linear")
         self.layer3 = tf.keras.layers.Dense(latent_dim, activation="linear")
 
-    def call(self, inputs):
+    def call(self, inputs, training=False):
         x = self.flatten(inputs)
         x = self.layer1(x)
         x = tf.keras.layers.LeakyReLU()(x)
-        x = tf.keras.layers.Dropout(0.5)(x)
+        if training:
+            x = tf.keras.layers.Dropout(0.3)(x)
         x = self.layer2(x)
         x = tf.keras.layers.LeakyReLU()(x)
-        x = tf.keras.layers.Dropout(0.5)(x)
+        if training:
+            x = tf.keras.layers.Dropout(0.3)(x)
         x = self.layer3(x)
         return x

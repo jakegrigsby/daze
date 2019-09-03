@@ -153,4 +153,43 @@ def maximum_mean_discrepancy():
     
     return _maximum_mean_discrepancy
 
-       
+cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
+
+def vanilla_discriminator_loss():
+    @trace_graph
+    def _vanilla_discriminator_loss(**forward_pass):
+        real_output = forward_pass["real_output"]
+        fake_output = forward_pass["fake_output"]
+        real_loss = cross_entropy(tf.ones_like(real_output), real_output)
+        fake_loss = cross_entropy(tf.zeros_like(fake_output), fake_output)
+        total_loss = real_loss + fake_loss
+        return total_loss
+    return _vanilla_discriminator_loss
+
+def vanilla_generator_loss():
+    @trace_graph
+    def _vanilla_generator_loss(**forward_pass):
+        fake_output = forward_pass["fake_output"]
+        return cross_entropy(tf.ones_like(fake_output), fake_output)
+    return _vanilla_generator_loss
+ 
+def one_sided_label_smoothing(smoothing_val=.9):
+    @trace_graph
+    def _one_sided_label_smoothing(**forward_pass):
+        real_output = forward_pass["real_output"]
+        fake_output = forward_pass["fake_output"]
+        real_loss = cross_entropy(tf.ones_like(real_output)*smoothing_val, real_output)
+        fake_loss = cross_entropy(tf.zeros_like(fake_output), fake_output)
+        total_loss = real_loss + fake_loss
+        return total_loss
+    return _one_sided_label_smoothing
+
+def feature_matching(gamma=1.):
+    @trace_graph
+    def _feature_matching(**forward_pass):
+        real_features = forward_pass["real_features"]
+        fake_features = forward_pass["fake_features"]
+        return gamma * mse(real_features, fake_features)
+    return _feature_matching
+
+          

@@ -6,42 +6,77 @@ import functools
 import numpy as np
 import tensorflow as tf
 
-from .loss import reconstruction
+from . import loss
 from . import forward_pass
 from .tracing import reset_trace_record, trace_graph
 from . import data
 
-
-class Model(tf.keras.Model):
-    def __init__(
-        self,
-        encoder,
-        decoder,
-        preprocessing_steps=[],
-        forward_pass_func=forward_pass.standard_encode_decode,
-        loss_funcs=[reconstruction()],
-    ):
-        super().__init__()
-        self.encoder, self.decoder = encoder, decoder
+class DZModel:
+    def __init__(self, preprocessing_steps=[]):
         self.preprocessing_steps = preprocessing_steps
-        self.call = functools.partial(forward_pass_func, self)
-        self.loss_funcs = loss_funcs
+        self._training = False
 
+    def make_tape_container(self):
+        """
+        Trick the autograph system into only tracing each function once by wrapping python
+        objects in a superobject with a constant id. We use this to pass gradient tapes
+        to contractive loss.
+        """
         class _TapeContainer:
             def __init__(self):
                 self.tape = None
-
-        self.tape_container = _TapeContainer()
+        return _TapeContainer()
 
     def preprocess_input(self, x):
         for func in self.preprocessing_steps:
             x = func(x)
         return x
 
+    def recover_batch_count(self, batched_tf_dataset):
+        batch_count = 0
+        for x in batched_tf_dataset:
+            batch_count += 1
+        return batch_count
+
+    def init_logging(self, save_path):
+        """ Sets up log directories for training.
+        """
+        save_path = os.path.join(os.getcwd(), save_path)
+        # get unique number for this run
+        i = 0
+        while os.path.exists(save_path + f"_{i}"):
+            i += 1
+        save_path += f"_{i}"
+        # Setup checkpoints and logging
+        checkpoint_dir = os.path.join(save_path, "checkpoints")
+        os.makedirs(checkpoint_dir)
+        log_dir = os.path.join(save_path, "logs")
+        os.makedirs(log_dir)
+        return log_dir, checkpoint_dir
+
+    def apply_gradients(self, optimizer, gradients, variables):
+        """ Applies the gradients to the optimizer. """
+        optimizer.apply_gradients(zip(gradients, variables))
+
+class AutoEncoder(DZModel):
+    def __init__(
+        self,
+        encoder,
+        decoder,
+        preprocessing_steps=[],
+        forward_pass_func=forward_pass.standard_encode_decode,
+        loss_funcs=[loss.reconstruction()],
+    ):
+        super().__init__(preprocessing_steps)
+        self.encoder, self.decoder = encoder, decoder
+        self.forward = functools.partial(forward_pass_func, self)
+        self.loss_funcs = loss_funcs
+        self.tape_container = self.make_tape_container()
+
     def compute_loss(self, original_x, x):
         with tf.GradientTape(persistent=True) as tape:
             tape.watch(x)
-            forward_pass = self.call(original_x, x)
+            forward_pass = self.forward(original_x, x)
             self.tape_container.tape = tape
             forward_pass["tape_container"] = self.tape_container
             loss = 0
@@ -50,7 +85,7 @@ class Model(tf.keras.Model):
         return loss, tape
 
     def predict(self, x):
-        return self.call(x, x)["x_hat"]
+        return self.forward(x, x)["x_hat"]
 
     def get_batch_encodings(self, x):
         if not isinstance(x, tf.data.Dataset):
@@ -66,10 +101,6 @@ class Model(tf.keras.Model):
             else:
                 out_data = encoding
         return out_data
-
-    @trace_graph
-    def encode(self, x):
-        return self.encoder(x)
 
     @property
     def weights(self):
@@ -96,27 +127,11 @@ class Model(tf.keras.Model):
 
     @trace_graph
     def encode(self, x):
-        return self.encoder(x)
+        return self.encoder(x, training=self._training)
 
     @trace_graph
     def decode(self, h):
-        return self.decoder(h)
-
-    def init_logging(self, save_path):
-        """ Sets up log directories for training.
-        """
-        save_path = os.path.join(os.getcwd(), save_path)
-        # get unique number for this run
-        i = 0
-        while os.path.exists(save_path + f"_{i}"):
-            i += 1
-        save_path += f"_{i}"
-        # Setup checkpoints and logging
-        checkpoint_dir = os.path.join(save_path, "checkpoints")
-        os.makedirs(checkpoint_dir)
-        log_dir = os.path.join(save_path, "logs")
-        os.makedirs(log_dir)
-        return log_dir, checkpoint_dir
+        return self.decoder(h, training=self._training)
 
     def compute_gradients(self, original_x, x):
         """ Computes gradient of custom loss function.
@@ -124,10 +139,6 @@ class Model(tf.keras.Model):
         loss, tape = self.compute_loss(original_x, x)
         grad = tape.gradient(loss, self.trainable_variables)
         return grad, loss
-
-    def apply_gradients(self, optimizer, gradients, variables):
-        """ Applies the gradients to the optimizer. """
-        optimizer.apply_gradients(zip(gradients, variables))
 
     def train(
         self,
@@ -148,13 +159,12 @@ class Model(tf.keras.Model):
         train_loss = tf.keras.metrics.Mean("train_loss", dtype=tf.float32)
         val_loss = tf.keras.metrics.Mean("val_loss", dtype=tf.float32)
 
-        batch_count = 0
-        for x in train_dataset:
-            batch_count += 1
+        batch_count = self.recover_batch_count(train_dataset)
 
         for epoch in range(epochs):
             if verbosity > 1: progbar = tf.keras.utils.Progbar(batch_count)
             start_time = time.time()
+            self._training = True
             for (batch, (original_x)) in enumerate(train_dataset):
                 processed_x = self.preprocess_input(original_x)
                 gradients, loss = self.compute_gradients(original_x, processed_x)
@@ -174,6 +184,7 @@ class Model(tf.keras.Model):
                 
             end_time = time.time()
             
+            self._training = False
             for original_x in val_dataset:
                 loss, _ = self.compute_loss(original_x, original_x)
                 val_loss(loss)
@@ -199,5 +210,162 @@ class Model(tf.keras.Model):
 
             train_loss.reset_states()
             val_loss.reset_states()
+
+        self.save_weights(checkpoint_dir)
+
+
+class GAN(DZModel):
+    def __init__(
+        self,
+        generator,
+        discriminator,
+        noise_dim,
+        preprocessing_steps=[],
+        forward_pass_func=forward_pass.generative_adversarial,
+        generator_loss=[loss.vanilla_generator_loss()],
+        discriminator_loss=[loss.vanilla_discriminator_loss()],
+    ):
+        super().__init__(preprocessing_steps)
+        self.generator, self.discriminator = generator, discriminator
+        self.disc_classifier_layer = tf.keras.layers.Dense(1, activation='sigmoid')
+        self.forward = functools.partial(forward_pass_func, self)
+        self.generator_loss_funcs = generator_loss
+        self.noise_dim = noise_dim
+        self.discriminator_loss_funcs = discriminator_loss
+
+        self.gen_tape_container = self.make_tape_container()
+        self.disc_tape_container = self.make_tape_container()
+
+    def compute_loss(self, original_x, x):
+        with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:
+            forward_pass = self.forward(original_x, x)
+            self.gen_tape_container.tape = gen_tape
+            self.disc_tape_container.tape = disc_tape
+            forward_pass["gen_tape_container"] = self.gen_tape_container
+            forward_pass["disc_tape_container"] = self.disc_tape_container
+            gen_loss = 0
+            for loss_func in self.generator_loss_funcs:
+                gen_loss += loss_func(**forward_pass)
+            disc_loss = 0
+            for loss_func in self.discriminator_loss_funcs:
+                disc_loss += loss_func(**forward_pass)
+        return gen_loss, gen_tape, disc_loss, disc_tape
+
+    @trace_graph
+    def generate(self, x):
+        return self.generator(x, training=self._training)
+    
+    @trace_graph
+    def discriminate(self, x):
+        features = self.discriminator(x, training=self._training)
+        classification = self.disc_classifier_layer(features)
+        return features, classification
+
+    @property
+    def weights(self):
+        return [self.generator.get_weights(), self.discriminator.get_weights()]
+
+    @weights.setter
+    def weights(self, new_weights):
+        self.generator.set_weights(new_weights[0])
+        self.discriminator.set_weights(new_weights[1])
+
+    def save_weights(self, path):
+        if not os.path.exists(path):
+            os.makedirs(path)
+        self.generator.save_weights(os.path.join(path, "generator"))
+        self.discriminator.save_weights(os.path.join(path, "discriminator"))
+
+    def load_weights(self, path):
+        self.generator.load_weights(os.path.join(path, "generator"))
+        self.discriminator.load_weights(os.path.join(path, "discriminator"))
+        
+    def compute_gradients(self, original_x, x):
+        """ Computes gradient of custom loss function.
+        """
+        gen_loss, gen_tape, disc_loss, disc_tape = self.compute_loss(original_x, x)
+        gen_grads = gen_tape.gradient(gen_loss, self.generator.trainable_variables)
+        disc_grads = disc_tape.gradient(disc_loss, self.discriminator.trainable_variables)
+        return gen_grads, gen_loss, disc_grads, disc_loss
+
+    def train(
+        self,
+        train_dataset,
+        val_dataset,
+        epochs=10,
+        save_path="saves",
+        verbosity=1,
+        callbacks=None,
+    ):
+        """ Trains the model for a given number of epochs (iterations on a dataset).
+        """
+        reset_trace_record()
+        log_dir, checkpoint_dir = self.init_logging(save_path)
+
+        gen_optimizer = tf.keras.optimizers.Adam()
+        disc_optimizer = tf.keras.optimizers.Adam()
+
+        train_loss_gen = tf.keras.metrics.Mean("generator_train_loss", dtype=tf.float32)
+        train_loss_disc = tf.keras.metrics.Mean("discriminator_train_loss", dtype=tf.float32)
+
+        val_loss_gen = tf.keras.metrics.Mean("generator_val_loss", dtype=tf.float32)
+        val_loss_disc = tf.keras.metrics.Mean("discriminator_val_loss", dtype=tf.float32)
+
+        batch_count = self.recover_batch_count(train_dataset)
+
+        for epoch in range(epochs):
+            if verbosity > 1: progbar = tf.keras.utils.Progbar(batch_count)
+            start_time = time.time()
+            self._training = True
+            for (batch, (original_x)) in enumerate(train_dataset):
+                processed_x = self.preprocess_input(original_x)
+                gen_grads, gen_loss, disc_grads, disc_loss = self.compute_gradients(original_x, processed_x)
+                train_loss_gen(gen_loss)
+                train_loss_disc(disc_loss)
+                self.apply_gradients(gen_optimizer, gen_grads, self.generator.trainable_variables)
+                self.apply_gradients(disc_optimizer, disc_grads, self.discriminator.trainable_variables)
+                if verbosity > 1 and batch_count:
+                    progbar.update(batch + 1)
+                if callbacks:
+                    batch_dict = {
+                    "type":"batch",
+                    "gradients": gen_grads,
+                    "current_step": (epoch*batch_count)+batch,
+                    "log_dir": log_dir,
+                    }
+                    for callback in callbacks:
+                        callback(self, **batch_dict)
+                
+            end_time = time.time()
+            
+            self._training = False
+            for original_x in val_dataset:
+                gen_loss, _, disc_loss, _ = self.compute_loss(original_x, original_x)
+                val_loss_gen(gen_loss)
+                val_loss_disc(disc_loss)
+
+            if verbosity >= 1:
+                print(
+                        f"Epoch {epoch}, Train_Loss (Gen: {train_loss_gen.result()}, Disc: {train_loss_disc.result()}), Val_Loss (Gen: {val_loss_gen.result()}, Disc: {val_loss_disc.result()}) Train_Time {end_time - start_time}"
+                )
+            
+            if callbacks:
+                epoch_dict = {
+                "type":"epoch",
+                "current_epoch": epoch,
+                "train_loss": train_loss_gen,
+                "val_loss": val_loss_gen,
+                "epoch_start_time": start_time,
+                "epoch_end_time": end_time,
+                "checkpoint_dir": checkpoint_dir,
+                "log_dir": log_dir,
+                }
+                for callback in callbacks:
+                    callback(self, **epoch_dict)
+
+            train_loss_gen.reset_states()
+            train_loss_disc.reset_states()
+            val_loss_gen.reset_states()
+            val_loss_disc.reset_states()
 
         self.save_weights(checkpoint_dir)

@@ -15,7 +15,7 @@ class EasyDecoder(tf.keras.models.Model):
         self.layer3 = tf.keras.layers.Dense(num_entries, activation="linear")
         self.unflatten = tf.keras.layers.Reshape(input_shape)
 
-    def call(self, inputs):
+    def call(self, inputs, training=False):
         x = self.layer1(inputs)
         x = tf.keras.layers.LeakyReLU()(x)
         x = tf.keras.layers.Dropout(0.5)(x)
