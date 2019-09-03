@@ -1,11 +1,12 @@
+
 import tensorflow as tf
-
-from .math import *
-from .tracing import trace_graph
-
 # Currently, we still require the nightly build of tensorflow_probability
 import tensorflow_probability as tfp
 
+
+from .math import *
+from .tracing import trace_graph
+from . import preprocessing
 
 @trace_graph
 def probabilistic_encode_decode(model, original_x, x):
@@ -63,3 +64,23 @@ def generative_adversarial(model, original_x, x):
             "fake_features" : fake_features,
             "fake_output" : fake_output,
     }
+
+_gaussian_noise = preprocessing.gaussian_noise(.1, 0, .1)
+
+@trace_graph
+def generative_adversarial_instance_noise(model, x, original_x):
+    noise = tf.random.normal([x.shape[0], model.noise_dim])
+    generated_images = model.generate(noise)
+    generated_images = _gaussian_noise(generated_images)
+    x = _gaussian_noise(x)
+    real_features, real_output = model.discriminate(x)
+    fake_features, fake_output = model.discriminate(generated_images)
+    return {
+            "generated_images" : generated_images,
+            "real_features" : real_features,
+            "real_output" : real_output,
+            "fake_features" : fake_features,
+            "fake_output" : fake_output,
+    }
+
+

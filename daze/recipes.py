@@ -51,7 +51,6 @@ def L1SparseAutoEncoder(encoder, decoder, gamma, preprocessing_steps=[]):
         encoder, decoder, preprocessing_steps=preprocessing_steps, loss_funcs=loss_funcs
     )
 
-
 def InfoVariationalAutoEncoder(encoder, decoder, preprocessing_steps=[]):
         loss_funcs = [loss.reconstruction(), loss.maximum_mean_discrepancy()]
         return AutoEncoder(
