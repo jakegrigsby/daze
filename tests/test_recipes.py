@@ -32,6 +32,7 @@ def train(model, callbacks):
         verbosity=0,
     )
 
+
 def make_callbacks(model):
     callbacks = [checkpoints(1), 
                 tensorboard_loss_scalars(), 
@@ -48,19 +49,40 @@ def test_default():
     cbs = make_callbacks(model)
     train(model, cbs)
 
+
 def test_gan():
-    model = dz.GAN(CifarDecoder(), ConvolutionalEncoder(1), 100)
+    model = dz.GAN(CifarDecoder(), ConvolutionalEncoder(), 100)
+    cbs = [tensorboard_generative_sample(dz.math.random_normal([5, 100]))]
+    train(model, cbs)
+
+
+def test_gan_one_sided_labels():
+    model = dz.model.GAN(CifarDecoder(), ConvolutionalEncoder(), noise_dim=100, discriminator_loss=[dz.loss.one_sided_label_smoothing()])
     train(model, None)
+
+
+def test_gan_feature_matching():
+    model = dz.model.GAN(CifarDecoder(), ConvolutionalEncoder(), noise_dim=100, generator_loss=[dz.loss.feature_matching()])
+    train(model, None)
+
+
+
+def test_gan_instance_noise():
+    model = dz.model.GAN(CifarDecoder(), ConvolutionalEncoder(), noise_dim=100, forward_pass_func=dz.forward_pass.generative_adversarial_instance_noise)
+    train(model, None)
+
 
 def test_vae():
     model = dz.recipes.VariationalAutoEncoder(ConvolutionalEncoder(), CifarDecoder())
     cbs = make_callbacks(model)
     train(model, cbs)
+    
 
 def test_denoising():
     model = dz.recipes.DenoisingAutoEncoder(ConvolutionalEncoder(), CifarDecoder(), gamma=0.1)
     cbs = make_callbacks(model)
     train(model, cbs)
+
 
 def test_klsparse():
     model = dz.recipes.KlSparseAutoEncoder(
@@ -69,10 +91,12 @@ def test_klsparse():
     cbs = make_callbacks(model)
     train(model, cbs)
 
+
 def test_l1sparse():
     model = dz.recipes.L1SparseAutoEncoder(ConvolutionalEncoder(), CifarDecoder(), gamma=0.1)
     cbs = make_callbacks(model)
     train(model, cbs)
+    
 
 def test_contractive():
     if dz.tracing.TRACE_GRAPHS:
@@ -87,9 +111,11 @@ def test_contractive():
         cbs = make_callbacks(model)
         train(model, cbs)
 
+
 def test_beta_vae():
     model = dz.recipes.BetaVariationalAutoEncoder(
         ConvolutionalEncoder(), CifarDecoder(), beta=1.1
     )
     cbs = make_callbacks(model)
     train(model, cbs)
+

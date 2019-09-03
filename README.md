@@ -1,4 +1,5 @@
 # DAZE
+![](docs/source/media/logo.png)
 ## Autoencoders
 
 TODO: intro here...
