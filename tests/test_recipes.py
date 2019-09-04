@@ -68,7 +68,7 @@ def test_gan_feature_matching():
 
 
 def test_gan_instance_noise():
-    model = dz.model.GAN(CifarDecoder(), ConvolutionalEncoder(), noise_dim=100, forward_pass_func=dz.forward_pass.generative_adversarial_instance_noise)
+    model = dz.model.GAN(CifarDecoder(), ConvolutionalEncoder(), noise_dim=100, forward_pass=dz.forward_pass.generative_adversarial_instance_noise(.2, 0., 1000))
     train(model, None)
 
 
