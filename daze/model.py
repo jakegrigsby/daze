@@ -64,12 +64,12 @@ class AutoEncoder(DZModel):
         encoder,
         decoder,
         preprocessing_steps=[],
-        forward_pass=forward_pass.standard_encode_decode(),
+        forward_pass_func=forward_pass.standard_encode_decode(),
         loss_funcs=[loss.reconstruction()],
     ):
         super().__init__(preprocessing_steps)
         self.encoder, self.decoder = encoder, decoder
-        self.forward = functools.partial(forward_pass, self)
+        self.forward = functools.partial(forward_pass_func, self)
         self.loss_funcs = loss_funcs
         self.tape_container = self.make_tape_container()
 
@@ -221,14 +221,14 @@ class GAN(DZModel):
         discriminator,
         noise_dim,
         preprocessing_steps=[],
-        forward_pass=forward_pass.generative_adversarial(),
+        forward_pass_func=forward_pass.generative_adversarial(),
         generator_loss=[loss.vanilla_generator_loss()],
         discriminator_loss=[loss.vanilla_discriminator_loss()],
     ):
         super().__init__(preprocessing_steps)
         self.generator, self.discriminator = generator, discriminator
         self.disc_classifier_layer = tf.keras.layers.Dense(1, activation='sigmoid')
-        self.forward = functools.partial(forward_pass, self)
+        self.forward = functools.partial(forward_pass_func, self)
         self.generator_loss_funcs = generator_loss
         self.noise_dim = noise_dim
         self.discriminator_loss_funcs = discriminator_loss

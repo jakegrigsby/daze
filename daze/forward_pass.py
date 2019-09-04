@@ -7,9 +7,11 @@ import tensorflow_probability as tfp
 from .math import *
 from .tracing import trace_graph
 from . import preprocessing
+from .enforce import *
 
 def probabilistic_encode_decode():
     @trace_graph
+    @vae_compatible
     def _probabilistic_encode_decode(model, original_x, x):
         """VAE-style forward pass.
 
@@ -38,6 +40,7 @@ def probabilistic_encode_decode():
 
 def standard_encode_decode():
     @trace_graph
+    @ae_compatible
     def _standard_encode_decode(model, original_x, x):
         """Autoencoder-style forward pass.
 
@@ -57,6 +60,7 @@ def standard_encode_decode():
 
 def generative_adversarial():
     @trace_graph
+    @gan_compatible
     def _generative_adversarial(model, original_x, x):
         noise = tf.random.normal([x.shape[0], model.noise_dim])
         generated_images = model.generate(noise)
@@ -75,6 +79,7 @@ def generative_adversarial():
 def generative_adversarial_instance_noise(gamma_start, gamma_end, steps_annealed, mean=0., std=1.):
     current_gamma = gamma_start
     @trace_graph
+    @gan_compatible
     def _generative_adversarial_instance_noise(model, x, original_x):
         nonlocal current_gamma
         noise = tf.random.normal([x.shape[0], model.noise_dim])
