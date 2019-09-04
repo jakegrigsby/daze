@@ -28,7 +28,7 @@ def test_random_mask():
 
 def test_gaussian_noise():
     img_shape = (16, 10, 10, 3)
-    f = gaussian_noise(mean=0, std=1, seed=852)
+    f = gaussian_noise(mean=0, std=1, coeff=.1, seed=852)
     img = tf.random.uniform(img_shape)
     noise_img = f(img)
     assert np.not_equal(img, noise_img).all()
