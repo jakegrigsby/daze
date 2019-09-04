@@ -6,6 +6,7 @@ import tensorflow_probability as tfp
 
 from .math import *
 from .tracing import trace_graph, TRACE_GRAPHS
+from .enforce import *
 
 mse = tf.keras.losses.mean_squared_error
 
@@ -18,6 +19,7 @@ def kl(beta):
             loss function.
     """
     @trace_graph
+    @vae_compatible
     def _kl(**forward_pass):
         mean = forward_pass["mean"]
         sigma = forward_pass["sigma"]
@@ -53,7 +55,7 @@ def contractive(coeff):
             "Autograph tracing not supported for contractive loss. Set dz_trace_graphs environment variable to false:"
             "\t`$ export dz_trace_graphs=False`"
         )
-
+    @ae_compatible
     def _contractive(**forward_pass):
         h = forward_pass["h"]
         x = forward_pass["x"]
@@ -70,6 +72,7 @@ def denoising_reconstruction():
         preprocessing).
     """
     @trace_graph
+    @encoder_decoder_compatible
     def _denoising(**forward_pass):
         original_x = forward_pass["original_x"]
         x_hat = forward_pass["x_hat"]
@@ -82,6 +85,7 @@ def reconstruction():
     """Mean Squared Error between the reconstruction and true (preprocessed) input.
     """
     @trace_graph
+    @encoder_decoder_compatible
     def _reconstruction(**forward_pass):
         x = forward_pass["x"]
         x_hat = forward_pass["x_hat"]
@@ -98,6 +102,7 @@ def latent_l1(gamma):
             loss function.
     """
     @trace_graph
+    @ae_compatible
     def _latent_l1(**forward_pass):
         h = forward_pass["h"]
         return gamma * tf.math.reduce_sum(tf.math.abs(h))
@@ -115,6 +120,7 @@ def sparsity(rho, beta):
     rho = tf.constant(rho)
 
     @trace_graph
+    @ae_compatible
     def _sparsity(**forward_pass):
         h = forward_pass["h"]
         rho_hat = tf.reduce_mean(h, axis=0)
@@ -142,6 +148,7 @@ def maximum_mean_discrepancy():
         true_samples = tf.random.normal(tf.stack([200, dim]))
 
     @trace_graph
+    @vae_compatible
     def _maximum_mean_discrepancy(**forward_pass):
         z = forward_pass["z"]        
         if not isinstance(true_samples, tf.Tensor): sample(z.shape[1])
@@ -157,6 +164,7 @@ cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=True)
 
 def vanilla_discriminator_loss():
     @trace_graph
+    @discriminator_compatible
     def _vanilla_discriminator_loss(**forward_pass):
         real_output = forward_pass["real_output"]
         fake_output = forward_pass["fake_output"]
@@ -168,6 +176,7 @@ def vanilla_discriminator_loss():
 
 def vanilla_generator_loss():
     @trace_graph
+    @generator_compatible
     def _vanilla_generator_loss(**forward_pass):
         fake_output = forward_pass["fake_output"]
         return cross_entropy(tf.ones_like(fake_output), fake_output)
@@ -175,6 +184,7 @@ def vanilla_generator_loss():
  
 def one_sided_label_smoothing(smoothing_val=.9):
     @trace_graph
+    @discriminator_compatible
     def _one_sided_label_smoothing(**forward_pass):
         real_output = forward_pass["real_output"]
         fake_output = forward_pass["fake_output"]
@@ -186,6 +196,7 @@ def one_sided_label_smoothing(smoothing_val=.9):
 
 def feature_matching(gamma=1.):
     @trace_graph
+    @generator_compatible
     def _feature_matching(**forward_pass):
         real_features = forward_pass["real_features"]
         fake_features = forward_pass["fake_features"]

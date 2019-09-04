@@ -10,6 +10,7 @@ from . import loss
 from . import forward_pass
 from .tracing import reset_trace_record, trace_graph
 from . import data
+from . import enforce
 
 class DZModel:
     def __init__(self, preprocessing_steps=[]):
@@ -68,10 +69,22 @@ class AutoEncoder(DZModel):
         loss_funcs=[loss.reconstruction()],
     ):
         super().__init__(preprocessing_steps)
+        self.check_compatability(encoder, decoder, forward_pass_func, loss_funcs)
         self.encoder, self.decoder = encoder, decoder
         self.forward = functools.partial(forward_pass_func, self)
         self.loss_funcs = loss_funcs
+
+
         self.tape_container = self.make_tape_container()
+
+    def check_compatability(self, encoder, decoder, forward_pass_func, loss_funcs):
+        return
+        """TODO
+        forward_type = type(forward_pass_func)
+        assert issubclass(forward_type, enforce.encoder_decoder_compatible)
+        for loss_func in loss_funcs:
+            assert isinstance(loss_func, forward_type)
+        """
 
     def compute_loss(self, original_x, x):
         with tf.GradientTape(persistent=True) as tape:
@@ -226,6 +239,7 @@ class GAN(DZModel):
         discriminator_loss=[loss.vanilla_discriminator_loss()],
     ):
         super().__init__(preprocessing_steps)
+        self.check_compatability(generator, discriminator, generator_loss, discriminator_loss, forward_pass_func)
         self.generator, self.discriminator = generator, discriminator
         self.disc_classifier_layer = tf.keras.layers.Dense(1, activation='sigmoid')
         self.forward = functools.partial(forward_pass_func, self)
@@ -233,8 +247,19 @@ class GAN(DZModel):
         self.noise_dim = noise_dim
         self.discriminator_loss_funcs = discriminator_loss
 
+
         self.gen_tape_container = self.make_tape_container()
         self.disc_tape_container = self.make_tape_container()
+
+    def check_compatability(self, generator, discriminator, generator_loss, discriminator_loss, forward_pass_func):
+        return
+        """TODO
+        assert isinstance(forward_pass_func, enforce.gan_compatible)
+        for loss_func in generator_loss:
+            assert isinstance(loss_func, enforce.generator_compatible)
+        for loss_func in discriminator_loss:
+            assert isinstance(loss_func, enforce.discriminator_compatible)
+        """
 
     def compute_loss(self, original_x, x):
         with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:

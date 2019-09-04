@@ -10,11 +10,15 @@ class compatible:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-class ae_compatible(compatible):
+class encoder_decoder_compatible(compatible):
     def __init__(self, func):
         super().__init__(func)
 
-class vae_compatible(ae_compatible):
+class ae_compatible(encoder_decoder_compatible):
+    def __init__(self, func):
+        super().__init__(func)
+
+class vae_compatible(encoder_decoder_compatible):
     def __init__(self, func):
         super().__init__(func)
 
@@ -29,3 +33,4 @@ class discriminator_compatible(gan_compatible):
 class generator_compatible(gan_compatible):
     def __init__(self, func):
         super().__init__(func)
+
