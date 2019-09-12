@@ -57,18 +57,18 @@ def test_gan():
 
 
 def test_gan_one_sided_labels():
-    model = dz.model.GAN(CifarDecoder(), ConvolutionalEncoder(), noise_dim=100, discriminator_loss=[dz.loss.one_sided_label_smoothing()])
+    model = dz.GAN(CifarDecoder(), ConvolutionalEncoder(), noise_dim=100, discriminator_loss=[dz.loss.one_sided_label_smoothing()])
     train(model, None)
 
 
 def test_gan_feature_matching():
-    model = dz.model.GAN(CifarDecoder(), ConvolutionalEncoder(), noise_dim=100, generator_loss=[dz.loss.feature_matching()])
+    model = dz.GAN(CifarDecoder(), ConvolutionalEncoder(), noise_dim=100, generator_loss=[dz.loss.feature_matching()])
     train(model, None)
 
 
 
 def test_gan_instance_noise():
-    model = dz.model.GAN(CifarDecoder(), ConvolutionalEncoder(), noise_dim=100, forward_pass_func=dz.forward_pass.generative_adversarial_instance_noise(.2, 0., 1000))
+    model = dz.GAN(CifarDecoder(), ConvolutionalEncoder(), noise_dim=100, forward_pass_func=dz.forward_pass.generative_adversarial_instance_noise(.2, 0., 1000))
     train(model, None)
 
 

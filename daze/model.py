@@ -78,13 +78,17 @@ class AutoEncoder(DZModel):
         self.tape_container = self.make_tape_container()
 
     def check_compatability(self, encoder, decoder, forward_pass_func, loss_funcs):
-        return
-        """TODO
-        forward_type = type(forward_pass_func)
-        assert issubclass(forward_type, enforce.encoder_decoder_compatible)
+        try:
+            enforce.check_compatability(forward_pass_func, enforce.encoder_decoder_compatible)
+        except enforce.DazeModelTypeError:
+            print(f"Attempted to use forward_pass_func of type {type(forward_pass_func)}. This is not compatible with AutoEncoder models.")
+            raise enforce.DazeModelTypeError
         for loss_func in loss_funcs:
-            assert isinstance(loss_func, forward_type)
-        """
+            try:
+                enforce.check_compatability(loss_func, type(forward_pass_func))
+            except enforce.DazeModelTypeError:
+                print(f"Attempted to use loss_func of type {type(loss_func)}. This is not compatible with AutoEncoder models.")
+                raise enforce.DazeModelTypeError
 
     def compute_loss(self, original_x, x):
         with tf.GradientTape(persistent=True) as tape:
@@ -247,19 +251,28 @@ class GAN(DZModel):
         self.noise_dim = noise_dim
         self.discriminator_loss_funcs = discriminator_loss
 
-
         self.gen_tape_container = self.make_tape_container()
         self.disc_tape_container = self.make_tape_container()
 
     def check_compatability(self, generator, discriminator, generator_loss, discriminator_loss, forward_pass_func):
-        return
-        """TODO
-        assert isinstance(forward_pass_func, enforce.gan_compatible)
+        try:
+            enforce.check_compatability(forward_pass_func, enforce.gan_compatible)
+        except enforce.DazeModelTypeError:
+            print(f"Attempted to use forward_pass_func of type {type(forward_pass_func)}. This is not compatible with GAN models.")
+            raise enforce.DazeModelTypeError
         for loss_func in generator_loss:
-            assert isinstance(loss_func, enforce.generator_compatible)
+            try:
+                enforce.check_compatability(loss_func, enforce.generator_compatible)
+            except enforce.DazeModelTypeError:
+                print(f"Attempted to use a loss_func of type {type(forward_pass_func)}. This is not compatible with GAN models.")
+                raise enforce.DazeModelTypeError
+
         for loss_func in discriminator_loss:
-            assert isinstance(loss_func, enforce.discriminator_compatible)
-        """
+            try:
+                enforce.check_compatability(loss_func, enforce.discriminator_compatible)
+            except enforce.DazeModelTypeError:
+                print(f"Attempted to use a loss_func of type {type(forward_pass_func)}. This is not compatible with GAN models.")
+                raise enforce.DazeModelTypeError
 
     def compute_loss(self, original_x, x):
         with tf.GradientTape() as gen_tape, tf.GradientTape() as disc_tape:

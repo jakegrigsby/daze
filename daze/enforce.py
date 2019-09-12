@@ -34,3 +34,13 @@ class generator_compatible(gan_compatible):
     def __init__(self, func):
         super().__init__(func)
 
+class DazeModelTypeError(Exception):
+    pass
+
+def check_compatability(object_, type_):
+    if isinstance(object_, type_):
+        return
+    elif type(object_) in type_.__bases__:
+        return
+    raise DazeModelTypeError
+

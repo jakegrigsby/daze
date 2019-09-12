@@ -11,7 +11,7 @@ from .enforce import *
 mse = tf.keras.losses.mean_squared_error
 
 
-def kl(beta):
+def kl(beta=.1):
     """KL Divergence Loss Term
 
     Args:
@@ -38,7 +38,7 @@ def kl(beta):
     return _kl
 
 
-def contractive(coeff):
+def contractive(coeff=.1):
     """Contractive Loss Term
 
     Note:
@@ -94,7 +94,7 @@ def reconstruction():
     return _reconstruction
 
 
-def latent_l1(gamma):
+def latent_l1(gamma=.01):
     """Loss term based on the L1 distance of the latent space.
 
     Args:
