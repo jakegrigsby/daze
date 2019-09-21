@@ -12,7 +12,7 @@ class EasyDecoder(tf.keras.models.Model):
 
         self.layer1 = tf.keras.layers.Dense(latent_dim, activation="linear")
         self.layer2 = tf.keras.layers.Dense(300, activation="linear")
-        self.layer3 = tf.keras.layers.Dense(num_entries, activation="linear")
+        self.layer3 = tf.keras.layers.Dense(num_entries, activation="sigmoid")
         self.unflatten = tf.keras.layers.Reshape(input_shape)
 
     def call(self, inputs, training=False):

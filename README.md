@@ -1,11 +1,19 @@
 # DAZE
 ![](docs/source/media/logo.png)
-## Autoencoders
+## Autoencoders and GANs
 
-TODO: intro here...
+Daze is a library for Autoencoders and Generative Adversarial Networks. It includes implementations of a number of popular algorithms - and is designed to make it easy to research and develop new techniques.
 
+## Installation
+```bash
+git clone https://github.com/jakegrigsby/daze.git
+cd daze
+make user
+```
 
+## Getting Started
 Daze includes a number of popular datasets and algorithms out-of-the-box. Here's a short script that trains a Denoising Autoencoder on MNIST.
+
 ```python
 import daze as dz
 from daze.callbacks import *
@@ -35,10 +43,11 @@ The `recipes` module includes implementations of:
 
 | Name | Paper |
 | --- | :---: | 
-|Contractive AE | [Rifai et al.](http://Jakes-MacBook-Pro-2.local:6006/)
-|Denoising AE| []
-|Sparse AE|
-|VAE|
-|BetaVAE|
-|InfoVAE|
-
+|Autoencoder| [Baldi](https://dl.acm.org/citation.cfm?id=3045801) |
+|GAN| [Goodfellow et al.](https://papers.nips.cc/paper/5423-generative-adversarial-nets.pdf)
+|Contractive AE | [Rifai et al.](http://www.icml-2011.org/papers/455_icmlpaper.pdf)
+|Denoising AE| [Vincent et al.](https://www.cs.toronto.edu/~larocheh/publications/icml-2008-denoising-autoencoders.pdf)
+|Sparse AE| [Ng](https://web.stanford.edu/class/cs294a/sparseAutoencoder.pdf)
+|VAE| [Kingma, Welling](https://arxiv.org/abs/1312.6114)
+|BetaVAE| [Higgins et al.](https://openreview.net/references/pdf?id=Sy2fzU9gl)
+|InfoVAE|[Zhao et al.](https://arxiv.org/abs/1706.02262)

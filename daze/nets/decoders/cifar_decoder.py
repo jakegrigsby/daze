@@ -42,7 +42,7 @@ class CifarDecoder(tf.keras.models.Model):
             3,
             kernel_size=(8, 8),
             strides=2,
-            activation="linear",
+            activation="sigmoid",
             data_format="channels_last",
             padding="valid",
         )

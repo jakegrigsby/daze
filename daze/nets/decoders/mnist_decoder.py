@@ -32,7 +32,7 @@ class MnistDecoder(tf.keras.models.Model):
             1,
             kernel_size=(3, 3),
             strides=(1, 1),
-            activation="linear",
+            activation="sigmoid",
             data_format="channels_last",
             padding="same",
         )
