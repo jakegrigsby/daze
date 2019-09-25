@@ -57,7 +57,7 @@ The `recipes` module includes implementations of:
 It's easy to mix and match components of each algorithm. There are five main categories of 'pieces':
 
 1) __Preprocessing Functions__:
-A modification to the input tensor before each training iteration. Used in Denoising Autoencoders as well as many data augmentation techniques. These are found in `preprocessing.py`
+A modification to the input tensor before each training iteration. Used in Denoising Autoencoders and in image augmentation pipelines. These are found in `preprocessing.py`
 2) __Foward Passes__:
 The model's computation graph - how it maps inputs to outputs. For example, autoencoders perform a straightforward NN inference pass while VAEs create a distribution from the latent vector and sample from it. These are found in `forward_pass.py`
 3) __Loss Functions__:
@@ -98,7 +98,7 @@ For more examples, see the `recipes` module.
 :warning: Not every component combination is compatible with each other. They are given relatively long, literature-standard names to decrease confusion, but you may still run into trouble if you're not familiar with these algorithms. Luckily, there is a type checking system that should tell you when you get it wrong. :warning:
 
 ## Creating Custom Components
-Completely custom components can be added by writing them in the same format as existing examples (see `loss.py`, `forward_pass.py`, `preprocessing.py`). There are really just three things to be aware of. Here's an example for reference:
+Completely custom components can be added by writing them in the same format as existing examples (see `loss.py`, `forward_pass.py`, `preprocessing.py`). There are a couple things to be aware of. Here's an example for reference:
 ```python
 def sparsity(rho, beta):
     """Sparsity loss term.
@@ -118,8 +118,8 @@ def sparsity(rho, beta):
 
     return _sparsity
 ```
-1) The Models expects components to be functions. However, many components need some sort of argument, like the `rho` and `beta` terms above. We get around this using inner functions and closures. Basically, the public function takes the params you need, and returns an inner function that can use those values. 
-2) Use of `@dz.tracing.trace_graph`. This is a decorator that is functionally similar to `@tf.function`, but is able to warn you about repeated retraces - which is a common bug. Basically, write the function as you would normally, add the `trace_graph` decorator, and it'll give you more information if you messed something up.
+1) The Models expect components to be functions. However, many components need some sort of argument, like the `rho` and `beta` terms above. We get around this using inner functions and closures. Basically, the public function takes the params you need, and returns an inner function that can use those values. For consistency's sake, our implementations do this whether they need to or not. But you could just as easily write a function that takes a `**forward_pass` arg and pass that straight into the Model.
+2) Use of `@dz.tracing.trace_graph`. This is a decorator that is functionally similar to `@tf.function`, but is able to warn you about frequent retraces - a common bug that makes you better off not compiling the graph. Basically, write the function as you would normally, add the `@trace_graph` decorator, and it'll give you more information if you messed something up.
 3) Compatability decorators. You'll see these all over the source code. They're from `dz.enforce` and they're meant to help the Models verify that the forward passes calculate everything the loss function needs. Basically, pick one of `@ae_compatible`, `@vae_compatible` or `@gan_compatible` (depending on what you're doing) and add that on the next line __after__ `@trace_graph`
 
 
